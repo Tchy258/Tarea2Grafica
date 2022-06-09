@@ -12,6 +12,7 @@ class GPUShape:
         self.vao = None
         self.vbo = None
         self.ebo = None
+        self.texture = None
         self.size = None
     #Inicialización de buffers según VAO, VBO y EBO
     def initBuffers(self):
@@ -23,7 +24,8 @@ class GPUShape:
     def __str__(self):
         return "vao=" + str(self.vao) +\
             "  vbo=" + str(self.vbo) +\
-            "  ebo=" + str(self.ebo)
+            "  ebo=" + str(self.ebo) +\
+            "  tex=" + str(self.texture)
     
     #Envío de información
     def fillBuffers(self, vertexData, indexData):
@@ -41,7 +43,10 @@ class GPUShape:
 
     #Liberación de memoria
     def clear(self):
-
+        
+        if self.texture != None:
+            glDeleteTextures(1, [self.texture])
+            
         if self.ebo != None:
             glDeleteBuffers(1, [self.ebo])
 
