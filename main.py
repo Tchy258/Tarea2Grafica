@@ -1,8 +1,8 @@
 import glfw
 from OpenGL.GL import *
-from basic_shapes import createSphere,createPrism
 from gpu_shape import GPUShape
-from easy_shaders import SimpleModelViewProjectionShaderProgram
+import basic_shapes as bs
+import easy_shaders as es
 import numpy as np
 import transformations as tr
 import constants
@@ -66,7 +66,32 @@ def on_key(window, key, scancode, action, mods):
 
 
 def main():
+    #Si no se pudo iniciar glfw, se cierra la ventana
     if not glfw.init():
         glfw.set_window_should_close(window,True)
     
+    #Se instancia la ventana
     window=glfw.create_window(constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT,constants.TITLE,None,None)
+    
+    #Si no se pudo crear la ventana
+    if not window:
+        #Se termina glfw y se cierra la ventana
+        glfw.terminate()
+        glfw.set_window_should_close(window, True)
+
+    #Se dibuja en la ventana de window
+    glfw.make_context_current(window)
+
+    #Función on_key para capturar entrada de teclado
+    glfw.set_key_callback(window, on_key)
+
+    #Shaders de texturas y shader de camera respectivamente
+    textureShaderProgram = es.SimpleTextureModelViewProjectionShaderProgram()
+    colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
+
+    # Setting up the clear screen color
+    glClearColor(0.85, 0.85, 0.85, 1.0)
+
+    # As we work in 3D, we need to check which part is in front,
+    # and which one is at the back
+    glEnable(GL_DEPTH_TEST)
