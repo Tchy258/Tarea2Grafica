@@ -63,3 +63,10 @@ def on_key(window, key, scancode, action, mods):
         movementSpeed/=np.linalg.norm(movementSpeed)
         movementSpeed=movementSpeed.tolist()
         controller.camPos+=movementSpeed
+
+
+def main():
+    if not glfw.init():
+        glfw.set_window_should_close(window,True)
+    
+    window=glfw.create_window(constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT,constants.TITLE,None,None)
