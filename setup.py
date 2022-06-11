@@ -1,12 +1,16 @@
-import libs.transformations as tr
+import transformations as tr
 from OpenGL.GL import glUseProgram, glUniformMatrix4fv, glGetUniformLocation,\
     GL_TRUE, glUniform3f, glUniform1ui, glUniform1f
 import numpy as np
-import libs.basic_shapes as bs
+from main import controller
+import basic_shapes as bs
 
 
-def setPlot(pipeline, mvpPipeline, width, height):
-    projection = tr.perspective(45, float(width)/float(height), 0.1, 100)
+def setProjection(pipeline, mvpPipeline, width, height):
+    if controller.IsOrtho:
+        projection = tr.ortho(-1, 1, -1, 1, 0.1, 100)
+    else:
+        projection = tr.perspective(45, float(width)/float(height), 0.1, 100)
 
     glUseProgram(mvpPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(
@@ -16,41 +20,22 @@ def setPlot(pipeline, mvpPipeline, width, height):
     glUniformMatrix4fv(glGetUniformLocation(
         pipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
 
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "La"), 1.0, 1.0, 1.0)
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "Ld"), 1.0, 1.0, 1.0)
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "Ls"), 1.0, 1.0, 1.0)
 
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "Ka"), 0.2, 0.2, 0.2)
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "Kd"), 0.9, 0.9, 0.9)
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "Ks"), 1.0, 1.0, 1.0)
-
-    glUniform3f(glGetUniformLocation(
-        pipeline.shaderProgram, "lightPosition"), 5, 5, 5)
-
-    glUniform1ui(glGetUniformLocation(
-        pipeline.shaderProgram, "shininess"), 1000)
-    glUniform1f(glGetUniformLocation(
-        pipeline.shaderProgram, "constantAttenuation"), 0.1)
-    glUniform1f(glGetUniformLocation(
-        pipeline.shaderProgram, "linearAttenuation"), 0.1)
-    glUniform1f(glGetUniformLocation(
-        pipeline.shaderProgram, "quadraticAttenuation"), 0.01)
-
-
-def setView(pipeline, mvpPipeline, controller):
-    view = tr.lookAt(
-        np.array([np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)*controller.r,
-                  np.cos(controller.cameraPhiAngle)*controller.r,
-                  np.sin(controller.cameraPhiAngle)*np.sin(controller.cameraThetaAngle)*controller.r]),
-        np.array([0, 0, 0]),
-        np.array([0, 1, 0])
-    )
+def setView(pipeline, mvpPipeline):
+    global controller
+    if controller.IsOrtho:
+        view = tr.lookAt(
+            np.array([0.,0.,10.]),
+            np.array([0.,0.,0.]),
+            np.array([0, 1, 0])
+        )
+    
+    else:
+        view = tr.lookAt(
+            controller.camPos,
+            controller.camPos+controller.camFront,
+            np.array([0, 0, 1])
+        )
 
     glUseProgram(mvpPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(
@@ -59,11 +44,6 @@ def setView(pipeline, mvpPipeline, controller):
     glUseProgram(pipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(
         pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
-    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"),
-                5*np.sin(controller.cameraPhiAngle) *
-                np.cos(controller.cameraThetaAngle),
-                5*np.cos(controller.cameraPhiAngle),
-                5*np.sin(controller.cameraPhiAngle)*np.sin(controller.cameraThetaAngle))
 
 
 def createMinecraftBlock():
