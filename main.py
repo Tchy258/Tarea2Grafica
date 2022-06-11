@@ -17,7 +17,7 @@ class Controller:
         self.camSpeed= 0.5
         self.camPos=np.array([0.,0.,0.])
         self.camFront=np.array([1.,0.,0.])
-        self.camUp=np.array([0.,0.,1.])
+        self.camUp=np.array([0.,1.,0.])
         self.IsOrtho=False
         self.view = [
             self.camPos,
@@ -57,8 +57,8 @@ def cursor_pos_callback(window,x,y):
         controller.cameraThetaAngle+=np.deg2rad(offsetY)
     
     frontX=np.cos(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
-    frontY=np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
-    frontZ=np.sin(controller.cameraThetaAngle)
+    frontZ=np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
+    frontY=np.sin(controller.cameraThetaAngle)
     controller.camFront=np.array([frontX,frontY,frontZ])
     controller.camFront/=np.linalg.norm(controller.camFront)
 
