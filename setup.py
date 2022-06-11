@@ -27,7 +27,7 @@ def setView(pipeline, mvpPipeline):
         view = tr.lookAt(
             np.array([0.,0.,10.]),
             np.array([0.,0.,0.]),
-            np.array([0, 1, 0])
+            np.array([0, 0.,1])
         )
     
     else:
