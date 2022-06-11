@@ -103,6 +103,28 @@ def perspective(fovy, aspect, near, far):
     halfWidth = halfHeight * aspect
     return frustum(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far)
 
+#Función para la proyección ortografica
+def ortho(left, right, bottom, top, near, far):
+    r_l = right - left
+    t_b = top - bottom
+    f_n = far - near
+    return np.array([
+        [ 2 / r_l,
+        0,
+        0,
+        -(right + left) / r_l],
+        [ 0,
+        2 / t_b,
+        0,
+        -(top + bottom) / t_b],
+        [ 0,
+        0,
+        -2 / f_n,
+        -(far + near) / f_n],
+        [ 0,
+        0,
+        0,
+        1]], dtype = np.float32)
 
 #Función para determinar hacia donde está mirando la cámara y definir que es "arriba" para la cámara
 def lookAt(eye, at, up):
