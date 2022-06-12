@@ -9,11 +9,11 @@ SIZE_IN_BYTES = constants.SIZE_IN_BYTES
 #Clase shape para contener vertices e indices
 class Shape:
     def __init__(self, vertexData, indexData):
-        self.vertexData = vertexData
-        self.indexData = indexData
+        self.vertices = vertexData
+        self.indices = indexData
 
 #Funcion para crear un cubo con texturas
-def createTextureCube(image_filename):
+def createTextureCube():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -65,4 +65,4 @@ def createTextureCube(image_filename):
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
 
-    return Shape(vertices, indices, image_filename)
+    return Shape(vertices, indices)
