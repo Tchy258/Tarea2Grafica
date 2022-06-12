@@ -46,7 +46,7 @@ def textureSimpleSetup(imgName, sWrapMode, tWrapMode, minFilterMode, maxFilterMo
 
 #La clase SimpleShader crea un shader al cual se le entregará la información para dibujar figuras
 #Las demás clases cumplen una función similar pero permiten más características como dibujar figuras 3D
-#que siguen una orientación determinada
+#que siguen una orientación determinada según la camara
 class SimpleShader():
 
     def __init__(self):
