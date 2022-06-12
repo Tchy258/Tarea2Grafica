@@ -23,32 +23,33 @@ def cursor_pos_callback(window,x,y):
     #x e y son las nuevas coordenadas actuales del mouse
     controller.mouseX=x
     controller.mouseY=y
-    #Los offset se multiplican para tener un movimiento que no sea extremedamente brusco
-    sensitivity=0.2
-    offsetX*=sensitivity
-    offsetY*=sensitivity
-    #El angulo phi de la camara se mueve segun el offsetX en radianes
-    controller.cameraPhiAngle+=np.deg2rad(offsetX)
-    #Si no se ha movido el mouse en x, y la variable del angulo phi es mayor a 2pi
-    if (abs(controller.cameraPhiAngle)>=2*np.pi and offsetX==0):
-        #Se suma o resta 2pi segun corresponda para evitar algun posible overflow de la variable al dar
-        #una cantidad muy grande de vueltas con el mouse
-        controller.cameraPhiAngle= controller.cameraPhiAngle-2*np.pi if controller.cameraPhiAngle > 0 \
-                                    else controller.cameraPhiAngle + 2*np.pi
-
-    #Si el angulo theta esta entre -pi/2 y pi/2
-    if (abs(controller.cameraThetaAngle)<=np.pi/2):
-        controller.cameraThetaAngle+=np.deg2rad(offsetY)
-        if(controller.cameraThetaAngle>np.pi/2):
-            controller.cameraThetaAngle=np.pi/2
-        if(controller.cameraThetaAngle<-np.pi/2):
-            controller.cameraThetaAngle=-np.pi/2
-
-    frontX=np.cos(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
-    frontZ=np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
-    frontY=np.sin(controller.cameraThetaAngle)
-    controller.camFront=np.array([frontX,frontY,frontZ])
-    controller.camFront/=np.linalg.norm(controller.camFront)
+    if not controller.IsOrtho:
+        #Los offset se multiplican para tener un movimiento que no sea extremedamente brusco
+        sensitivity=0.2
+        offsetX*=sensitivity
+        offsetY*=sensitivity
+        #El angulo phi de la camara se mueve segun el offsetX en radianes
+        controller.cameraPhiAngle+=np.deg2rad(offsetX)
+        #Si no se ha movido el mouse en x, y la variable del angulo phi es mayor a 2pi
+        if (abs(controller.cameraPhiAngle)>=2*np.pi and offsetX==0):
+            #Se suma o resta 2pi segun corresponda para evitar algun posible overflow de la variable al dar
+            #una cantidad muy grande de vueltas con el mouse
+            controller.cameraPhiAngle= controller.cameraPhiAngle-2*np.pi if controller.cameraPhiAngle > 0 \
+                                        else controller.cameraPhiAngle + 2*np.pi
+    
+        #Si el angulo theta esta entre -pi/2 y pi/2
+        if (abs(controller.cameraThetaAngle)<np.pi/2):
+            controller.cameraThetaAngle+=np.deg2rad(offsetY)
+            if(controller.cameraThetaAngle>=np.pi/2):
+                controller.cameraThetaAngle=np.pi/2-np.pi/(2*constants.SCREEN_HEIGHT)
+            if(controller.cameraThetaAngle<=-np.pi/2):
+                controller.cameraThetaAngle=-np.pi/2+np.pi/(2*constants.SCREEN_HEIGHT)
+    
+        frontX=np.cos(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
+        frontZ=np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
+        frontY=np.sin(controller.cameraThetaAngle)
+        controller.camFront=np.array([frontX,frontY,frontZ])
+        controller.camFront/=np.linalg.norm(controller.camFront)
 
 #Funcion para registrar clicks y botones del mouse
 def mouse_button_callback(window,button,action,mods):
@@ -79,21 +80,35 @@ def on_key(window, key, scancode, action, mods):
         controller.IsOrtho=not controller.IsOrtho
     if key==glfw.KEY_ESCAPE:
         glfw.set_window_should_close(window, True)
+
+def check_key_inputs(window):
     if not controller.IsOrtho:
-        if key==glfw.KEY_LEFT_SHIFT and (action==glfw.PRESS or action==glfw.REPEAT):
-            controller.camSpeed*=1.5
-        if key==glfw.KEY_W and (action==glfw.PRESS or action==glfw.REPEAT):
+        if glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.PRESS or glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.REPEAT:
+            controller.camSpeed*=10
+        if glfw.get_key(window, glfw.KEY_W)==glfw.PRESS or glfw.get_key(window, glfw.KEY_W)==glfw.REPEAT:
             controller.camPos+=controller.camFront*controller.camSpeed
-        if key==glfw.KEY_S and (action==glfw.PRESS or action==glfw.REPEAT):
+        if glfw.get_key(window, glfw.KEY_S)==glfw.PRESS or glfw.get_key(window, glfw.KEY_S)==glfw.REPEAT:
             controller.camPos-=controller.camFront*controller.camSpeed
-        if key==glfw.KEY_A and (action==glfw.PRESS or action==glfw.REPEAT):
+        if glfw.get_key(window, glfw.KEY_A)==glfw.PRESS or glfw.get_key(window, glfw.KEY_A)==glfw.REPEAT:
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos-=(sidewayVector*controller.camSpeed)
-        if key==glfw.KEY_D and (action==glfw.PRESS or action==glfw.REPEAT):
+        if glfw.get_key(window, glfw.KEY_D)==glfw.PRESS or glfw.get_key(window, glfw.KEY_D)==glfw.REPEAT:
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos+=(sidewayVector*controller.camSpeed)
+        if controller.camPos[0]>1.5:
+            controller.camPos[0]=1.5
+        if controller.camPos[0]<-5.5:
+            controller.camPos[0]=-5.5
+        if controller.camPos[1]>3:
+            controller.camPos[1]=3
+        if controller.camPos[1]<0.2:
+            controller.camPos[1]=0.2
+        if controller.camPos[2]>1.5:
+            controller.camPos[2]=1.5
+        if controller.camPos[2]<-5.5:
+            controller.camPos[2]=-5.5
 
 
 def main():
@@ -141,9 +156,9 @@ def main():
         t0=t1
         controller.camSpeed=controller.camBaseSpeed*dt
         glfw.poll_events()
-
+        check_key_inputs(window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-
+        print(controller.camPos)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         setView(textureShaderProgram,colorShaderProgram,controller)
@@ -153,6 +168,8 @@ def main():
         sg.drawSceneGraphNode(grafoEscena, textureShaderProgram, "model")
 
         glfw.swap_buffers(window)
+    
+    grafoEscena.clear()
     
 if __name__ == "__main__":
 
