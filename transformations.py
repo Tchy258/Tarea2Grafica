@@ -56,18 +56,13 @@ def rotationZ(theta):
         [0,0,1,0],
         [0,0,0,1]], dtype = np.float32)
 
-#Rotación respecto al eje Z en 2D
-def rotate2D(vector, theta):
-    """
-    Direct application of a 2D rotation
-    """
-    sin_theta = np.sin(theta)
-    cos_theta = np.cos(theta)
-
+def shearing(xy=0, yx=0, xz=0, zx=0, yz=0, zy=0):
     return np.array([
-        cos_theta * vector[0] - sin_theta * vector[1],
-        sin_theta * vector[0] + cos_theta * vector[1]
-    ], dtype = np.float32)
+        [1, xy, xz, 0],
+        [yx,  1, yz, 0],
+        [zx, zy,  1, 0],
+        [0,  0,  0, 1]], dtype=np.float32)
+
 
 #Función auxiliar para multiplicar matrices
 def matmul(mats):
