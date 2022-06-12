@@ -1,32 +1,16 @@
 import glfw
 from OpenGL.GL import *
+from setup import setProjection, setView, createScene
 from gpu_shape import GPUShape
 import basic_shapes as bs
 import easy_shaders as es
 import numpy as np
 import transformations as tr
+import scene_graph as sg
 import constants
 import math
 import random
-
-#Clase para manejar la camara y movimiento
-class Controller:
-    def __init__(self):
-        self.cameraPhiAngle = 0
-        self.cameraThetaAngle = 0
-        self.camSpeed= 0.5
-        self.camPos=np.array([0.,0.,0.])
-        self.camFront=np.array([1.,0.,0.])
-        self.camUp=np.array([0.,1.,0.])
-        self.IsOrtho=False
-        self.view = [
-            self.camPos,
-            self.camPos+self.camFront,
-            self.camUp
-        ]
-        self.cursorShouldHide=False
-        self.mouseX=constants.SCREEN_WIDTH/2.
-        self.mouseY=constants.SCREEN_HEIGHT/2.
+from controller import Controller
 
 controller=Controller()
 
@@ -34,13 +18,13 @@ controller=Controller()
 def cursor_pos_callback(window,x,y):
     global controller
     #offsetX y offsetY muestran que tanto se ha movido el mouse desde el ultimo swap de buffers
-    offsetX=controller.mouseX - x
-    offsetY=y - controller.mouseY
+    offsetX=x - controller.mouseX
+    offsetY=controller.mouseY - y
     #x e y son las nuevas coordenadas actuales del mouse
     controller.mouseX=x
     controller.mouseY=y
     #Los offset se multiplican para tener un movimiento que no sea extremedamente brusco
-    sensitivity=0.4
+    sensitivity=0.2
     offsetX*=sensitivity
     offsetY*=sensitivity
     #El angulo phi de la camara se mueve segun el offsetX en radianes
@@ -53,9 +37,13 @@ def cursor_pos_callback(window,x,y):
                                     else controller.cameraPhiAngle + 2*np.pi
 
     #Si el angulo theta esta entre -pi/2 y pi/2
-    if (abs(controller.cameraThetaAngle)<np.pi/2):
+    if (abs(controller.cameraThetaAngle)<=np.pi/2):
         controller.cameraThetaAngle+=np.deg2rad(offsetY)
-    
+        if(controller.cameraThetaAngle>np.pi/2):
+            controller.cameraThetaAngle=np.pi/2
+        if(controller.cameraThetaAngle<-np.pi/2):
+            controller.cameraThetaAngle=-np.pi/2
+
     frontX=np.cos(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
     frontZ=np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle)
     frontY=np.sin(controller.cameraThetaAngle)
@@ -84,14 +72,13 @@ def cursor_enter_callback(window,entered):
 
 def on_key(window, key, scancode, action, mods):
 
-    if action != glfw.PRESS:
-        return
 
     global controller
     
     if key==glfw.KEY_SPACE and action==glfw.PRESS:
         controller.IsOrtho=not controller.IsOrtho
-
+    if key==glfw.KEY_ESCAPE:
+        glfw.set_window_should_close(window, True)
     if not controller.IsOrtho:
         if key==glfw.KEY_LEFT_SHIFT and (action==glfw.PRESS or action==glfw.REPEAT):
             controller.camSpeed*=1.5
@@ -132,7 +119,7 @@ def main():
     #Shaders de texturas y shader de camera respectivamente
     textureShaderProgram = es.SimpleTextureModelViewProjectionShaderProgram()
     colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
-
+    grafoEscena=createScene(textureShaderProgram)
     #Color del fondo
     glClearColor(0.85, 0.85, 0.85, 1.0)
 
@@ -145,3 +132,28 @@ def main():
     glfw.set_mouse_button_callback(window, mouse_button_callback)
 
     glfw.set_cursor_enter_callback(window, cursor_enter_callback)
+    glfw.set_cursor_pos_callback(window,cursor_pos_callback)
+    t0 = glfw.get_time()
+    t1 = t0
+    while not glfw.window_should_close(window):
+        t1=glfw.get_time()
+        dt=t1-t0
+        t0=t1
+        controller.camSpeed=controller.camBaseSpeed*dt
+        glfw.poll_events()
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        setView(textureShaderProgram,colorShaderProgram,controller)
+        setProjection(controller, textureShaderProgram,colorShaderProgram,constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT)
+
+        glUseProgram(textureShaderProgram.shaderProgram)
+        sg.drawSceneGraphNode(grafoEscena, textureShaderProgram, "model")
+
+        glfw.swap_buffers(window)
+    
+if __name__ == "__main__":
+
+    main()
