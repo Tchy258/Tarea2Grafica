@@ -84,7 +84,7 @@ def on_key(window, key, scancode, action, mods):
 def check_key_inputs(window):
     if not controller.IsOrtho:
         if glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.PRESS or glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.REPEAT:
-            controller.camSpeed*=10
+            controller.camSpeed*=4
         if glfw.get_key(window, glfw.KEY_W)==glfw.PRESS or glfw.get_key(window, glfw.KEY_W)==glfw.REPEAT:
             controller.camPos+=controller.camFront*controller.camSpeed
         if glfw.get_key(window, glfw.KEY_S)==glfw.PRESS or glfw.get_key(window, glfw.KEY_S)==glfw.REPEAT:
@@ -97,18 +97,18 @@ def check_key_inputs(window):
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos+=(sidewayVector*controller.camSpeed)
-        if controller.camPos[0]>1.5:
-            controller.camPos[0]=1.5
-        if controller.camPos[0]<-5.5:
-            controller.camPos[0]=-5.5
-        if controller.camPos[1]>3:
-            controller.camPos[1]=3
+        if controller.camPos[0]>2.25:
+            controller.camPos[0]=2.25
+        if controller.camPos[0]<-7.5:
+            controller.camPos[0]=-7.5
+        if controller.camPos[1]>4:
+            controller.camPos[1]=4
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>1.5:
-            controller.camPos[2]=1.5
-        if controller.camPos[2]<-5.5:
-            controller.camPos[2]=-5.5
+        if controller.camPos[2]>2.25:
+            controller.camPos[2]=2.25
+        if controller.camPos[2]<-6.5:
+            controller.camPos[2]=-6.5
 
 
 def main():
