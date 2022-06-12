@@ -1,6 +1,10 @@
-#Archivo transformations.py del auxiliar 4
+#Archivo transformations.py del auxiliar 4 más otros
 
 import numpy as np
+
+# Matriz identidad de 4x4
+def identity():
+    return np.identity(4, dtype=np.float32)
 
 #Traslación de tx en el eje x, ty en eje y y tz en eje z
 def translate(tx, ty, tz):
