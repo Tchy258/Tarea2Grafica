@@ -25,7 +25,7 @@ def setProjection(controller,pipeline, mvpPipeline, width, height):
 def setView(pipeline, mvpPipeline,controller):
     if controller.IsOrtho:
         controller.view = tr.lookAt(
-            np.array([2,10.,-3]),
+            np.array([-4,10.,-5]),
             np.array([0,-10.,0]),
             np.array([1, 0.,1.])
         )
@@ -79,13 +79,13 @@ def createScene(pipeline):
         for j in range(6):
             #Se crea un nodo para sus paredes
             node = sg.SceneGraphNode('wall1.'+str(i))
-            node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.3, -1.5*j+1),tr.scale(1.2,1,1)])
+            node.transform = tr.matmul([tr.translate(-1.8*i-0.21, 0.3, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [walls]
             houseGroup.childs += [node]
             #Y otro para el segundo piso
-            if j%2==0:
+            if i%2==0:
                 node = sg.SceneGraphNode('secondFloor1'+str(i))
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 0.8, -1.5*j+1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i, 0.8, -1.5*j)])
                 node.childs += [walls]
                 houseGroup.childs += [node]
 
@@ -106,10 +106,14 @@ def createScene(pipeline):
     for i in range(2):
         for j in range(6):
             node = sg.SceneGraphNode('roof1.'+str(i))
-            if j%2==0:
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 1.305, -1.5*j+1)])
+            if i%2==0:
+                node.transform = tr.matmul([tr.translate(-1.8*i, 1.305, -1.5*j)])
+                node2=sg.SceneGraphNode('roof2extra'+str(i))
+                node2.transform = tr.matmul([tr.translate(-1.8*i+1.653, 0.625, -1.5*j),tr.scale(0.24,0.3,1),tr.shearing(-1.08,0,0)])
+                node2.childs+=[roofs]
+                houseGroup.childs+=[node2]
             else:
-                node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.805, -1.5*j+1),tr.scale(1.2,1,1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i-0.2, 0.805, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [roofs]
             houseGroup.childs += [node]
 
@@ -133,12 +137,12 @@ def createScene(pipeline):
         for j in range(6):
             #Se crea un nodo para sus paredes
             node = sg.SceneGraphNode('wall2'+str(i))
-            node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.3, -1.5*j+1),tr.scale(1.2,1,1)])
+            node.transform = tr.matmul([tr.translate(-1.8*i, 0.3, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [walls]
             houseGroup.childs += [node]
-            if j%2==0:
+            if i%2==0:
                 node = sg.SceneGraphNode('secondFloor2'+str(i))
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 0.8, -1.5*j+1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i+0.21, 0.8, -1.5*j)])
                 node.childs += [walls]
                 houseGroup.childs += [node]
     
@@ -156,10 +160,14 @@ def createScene(pipeline):
     for i in range(2,4):
         for j in range(6):
             node = sg.SceneGraphNode('roof2'+str(i))
-            if j%2==0:
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 1.305, -1.5*j+1)])
+            if i%2==0:
+                node.transform = tr.matmul([tr.translate(-1.8*i+0.22, 1.305, -1.5*j)])
+                node2=sg.SceneGraphNode('roof2extra'+str(i))
+                node2.transform = tr.matmul([tr.translate(-1.8*i+1.865, 0.625, -1.5*j),tr.scale(0.24,0.3,1),tr.shearing(-1.08,0,0)])
+                node2.childs+=[roofs]
+                houseGroup.childs+=[node2]
             else:
-                node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.805, -1.5*j+1),tr.scale(1.2,1,1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i, 0.805, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [roofs]
             houseGroup.childs += [node]
     
@@ -183,12 +191,12 @@ def createScene(pipeline):
         for j in range(6):
             #Se crea un nodo para sus paredes
             node = sg.SceneGraphNode('wall3'+str(i))
-            node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.3, -1.5*j+1),tr.scale(1.2,1,1)])
+            node.transform = tr.matmul([tr.translate(-1.8*i, 0.3, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [walls]
             houseGroup.childs += [node]
-            if j%2==0:
+            if i%2==0:
                 node = sg.SceneGraphNode('secondFloor3'+str(i))
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 0.8, -1.5*j+1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i+0.2, 0.8, -1.5*j)])
                 node.childs += [walls]
                 houseGroup.childs += [node]
     
@@ -207,10 +215,14 @@ def createScene(pipeline):
     for i in range(4,6):
         for j in range(6):
             node = sg.SceneGraphNode('roof3'+str(i))
-            if j%2==0:
-                node.transform = tr.matmul([tr.translate(-1.5*i+1, 1.305, -1.5*j+1)])
+            if i%2==0:
+                node.transform = tr.matmul([tr.translate(-1.8*i+0.22, 1.305, -1.5*j)])
+                node2=sg.SceneGraphNode('roof2extra'+str(i))
+                node2.transform = tr.matmul([tr.translate(-1.8*i+1.865, 0.625, -1.5*j),tr.scale(0.24,0.3,1),tr.shearing(-1.08,0,0)])
+                node2.childs+=[roofs]
+                houseGroup.childs+=[node2]
             else:
-                node.transform = tr.matmul([tr.translate(-1.65*i+1, 0.805, -1.5*j+1),tr.scale(1.2,1,1)])
+                node.transform = tr.matmul([tr.translate(-1.8*i-0.02, 0.805, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [roofs]
             houseGroup.childs += [node]
 
@@ -225,13 +237,13 @@ def createScene(pipeline):
     
     fieldNode = sg.SceneGraphNode('floor')
     fieldNode.transform = tr.matmul(
-        [tr.translate(1.5, 0.0, 1.5), tr.scale(1.5,0.1,1.5)])
+        [tr.translate(1.5, 0.0, 1.5), tr.scale(1.8,0.1,1.5)])
     fieldNode.childs += [gpuFloor]
 
     for i in range(6):
         for j in range(6):
             node = sg.SceneGraphNode('tile'+str(i))
-            node.transform = tr.matmul([tr.translate(-1.5*i+1, 0.0, -1.5*j+1)])
+            node.transform = tr.matmul([tr.translate(-1.8*i, 0.0, -1.5*j)])
             node.childs += [fieldNode]
             scene.childs += [node]
 
