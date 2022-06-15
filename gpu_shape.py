@@ -1,4 +1,3 @@
-#Archivo gpu_shape.py del auxiliar 4
 from OpenGL.GL import *
 import numpy as np
 import constants
