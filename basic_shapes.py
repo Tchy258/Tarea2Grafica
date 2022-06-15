@@ -96,3 +96,50 @@ def createTexturePyramid():
     ]
 
     return Shape(vertices, indices)
+
+def createTextureCilinder(N):
+
+    vertexData=[0.,0.,-H, 1/2,1/2]
+    indexData = []
+    #Se define un dphi para las tapas del cilindro
+    dphi = 2 * np.pi / N
+    R=1
+    H=1
+    z=-H
+    #Vertices tapa inferior
+    for i in range(N+1):
+        phi=dphi*i
+        x=R*np.cos(phi)
+        y=R*np.sin(phi)
+        vertexData += [
+                # pos    # tex
+                x, y, z, x/1055. , y/1055.
+            ]
+    z=H
+    #Vertices tapa superior
+    for i in range(N+1):
+        phi=dphi*i
+        x=R*np.cos(phi)
+        y=R*np.sin(phi)
+        vertexData += [
+                # pos    # tex
+                x, y, z, x/1055. , y/1055.
+            ]
+    vertexData+=[0.,0.,H, 1/2,1/2]
+    
+    #Indices tapa inferior
+    for i in range(N):
+        indexData+= [0,i,i+1]
+    #Indices tapa superior
+    for i in range(N,2*N+1):
+        indexData+= [N,i,i+1]
+    #Indices que forman la superficie lateral del cilindro
+    for i in range(2,N):
+        indexData+= [
+            i-1,i+N-1,i+1
+        ]
+        indexData+= [
+            i+1,i+N+1,i+N-1
+        ]
+
+    return Shape(vertexData, indexData)
