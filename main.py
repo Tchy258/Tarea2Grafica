@@ -23,7 +23,7 @@ def cursor_pos_callback(window,x,y):
     #x e y son las nuevas coordenadas actuales del mouse
     controller.mouseX=x
     controller.mouseY=y
-    if not controller.IsOrtho:
+    if not controller.IsOrtho and controller.cursorShouldHide:
         #Los offset se multiplican para tener un movimiento que no sea extremedamente brusco
         sensitivity=0.2
         offsetX*=sensitivity
@@ -57,19 +57,12 @@ def mouse_button_callback(window,button,action,mods):
     #Al hacer click izquierdo se mantiene o suelta el mouse en la ventana
     if (button==glfw.MOUSE_BUTTON_1 and action==glfw.PRESS):
         if (controller.cursorShouldHide):
-            glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
             controller.cursorShouldHide=False
         else:
-            glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_NORMAL)
+            glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            controller.cursorShouldHide=True
 
-#Funcion para detectar si el mouse entró o salió de la ventana)
-def cursor_enter_callback(window,entered):
-    global controller
-
-    if entered:
-        controller.cursorShouldHide=True
-    else:
-        controller.cursorShouldHide=False
 
 def on_key(window, key, scancode, action, mods):
 
@@ -97,18 +90,18 @@ def check_key_inputs(window):
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos+=(sidewayVector*controller.camSpeed)
-        if controller.camPos[0]>2.25:
-            controller.camPos[0]=2.25
-        if controller.camPos[0]<-7.5:
-            controller.camPos[0]=-7.5
-        if controller.camPos[1]>4:
-            controller.camPos[1]=4
+        if controller.camPos[0]>14.25:
+            controller.camPos[0]=14.25
+        if controller.camPos[0]<-13.5:
+            controller.camPos[0]=-13.5
+        if controller.camPos[1]>6:
+            controller.camPos[1]=6
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>2.25:
-            controller.camPos[2]=2.25
-        if controller.camPos[2]<-6.5:
-            controller.camPos[2]=-6.5
+        if controller.camPos[2]>8.25:
+            controller.camPos[2]=8.25
+        if controller.camPos[2]<-8.5:
+            controller.camPos[2]=-8.5
 
 
 def main():
@@ -146,7 +139,6 @@ def main():
     #Para que la ventana registre los clicks del mouse
     glfw.set_mouse_button_callback(window, mouse_button_callback)
 
-    glfw.set_cursor_enter_callback(window, cursor_enter_callback)
     glfw.set_cursor_pos_callback(window,cursor_pos_callback)
     t0 = glfw.get_time()
     t1 = t0
