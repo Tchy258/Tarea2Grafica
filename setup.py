@@ -461,17 +461,28 @@ def createScene(pipeline):
     for i in range(1,12):
         for j in range(15):
             if i!=8 and i!=4:
-                if (i==6 and j==14):
-                    node = sg.SceneGraphNode('tile'+str(i))
-                    node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j),tr.translate(1.5, 0.0, 1.5),tr.scale(0.1,1,1)])
-                    node.childs += [floors]
-                    environment.childs += [node]
-                if not(i>10 and j>8) and not (j>10 and i>9):
+                if i<=9:
                     node = sg.SceneGraphNode('tile'+str(i))
                     node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j),tr.translate(1.5, 0.0, 1.5)])
                     node.childs += [floors]
                     environment.childs += [node]
-    
+                else:
+                    if j<9:
+                        node = sg.SceneGraphNode('tile'+str(i))
+                        node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j),tr.translate(1.5, 0.0, 1.5)])
+                        node.childs += [floors]
+                        environment.childs += [node]
+    shapeFloor = bs.createTexturePyramid()
+    gpuFloor = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuFloor)
+    gpuFloor.fillBuffers(
+        shapeFloor.vertices, shapeFloor.indices)
+    gpuFloor.texture = es.textureSimpleSetup(
+        getAssetPath("piso.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    floors = sg.SceneGraphNode('floor2')
+    floors.transform = tr.matmul([tr.translate(-2*8-1,0,-1.4*12-0.4),tr.translate(-1.8, 0.05, 1.5),tr.rotationX(np.pi/2),tr.scale(4.38,8.105,0.1),tr.shearingTecho()])
+    floors.childs += [gpuFloor]
+
     shapeGrass = bs.createTexturePyramid()
     gpuGrass = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuGrass)
@@ -480,7 +491,7 @@ def createScene(pipeline):
     gpuGrass.texture=es.textureSimpleSetup (
         getAssetPath("pasto.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
     grass = sg.SceneGraphNode('grass')
-    grass.transform = tr.matmul([tr.translate(-2*8-1,0,-1.4*12-0.4),tr.translate(-1.8, 0.05, 1.5),tr.rotationY(np.pi),tr.rotationX(np.pi/2),tr.scale(5.37,9.105,0.1),tr.shearingTecho()])
+    grass.transform = tr.matmul([tr.translate(-2*8-1,0,-1.4*12-0.4),tr.translate(-1.8, 0.05, 1.5),tr.rotationY(np.pi),tr.rotationX(np.pi/2),tr.scale(5.38,9.105,0.1),tr.shearingTecho()])
     grass.childs+=[gpuGrass]
     environment.childs+=[grass]
 
@@ -497,6 +508,11 @@ def createScene(pipeline):
         [tr.translate(1.5, 0.0, 1.5), tr.scale(2,0.1,1.5),tr.rotationY(np.pi/2)])
     roads.childs+=[gpuRoad]
     for j in range(15):
+            if j<9:
+                node = sg.SceneGraphNode('roadTile'+str(12))
+                node.transform = tr.matmul([tr.translate(-2*12, 0.0, -1.5*j)])
+                node.childs += [roads]
+                environment.childs += [node]
             node = sg.SceneGraphNode('roadTile'+str(4))
             node.transform = tr.matmul([tr.translate(-2*4, 0.0, -1.5*j)])
             node.childs += [roads]
@@ -514,14 +530,15 @@ def createScene(pipeline):
     roads.transform = tr.matmul(
         [tr.translate(1.5, 0.0, 1.5), tr.scale(2,0.1,1.5)])
     roads.childs+=[gpuRoad]
-    for i in range(15):
-            node = sg.SceneGraphNode('roadTile'+str(-1))
-            node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*-1)])
-            node.childs += [roads]
-            environment.childs += [node]
+    for i in range(13):
+        if i<10:
             node = sg.SceneGraphNode('roadTile'+str(15))
             node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*15)])
             node.childs += [roads]
             environment.childs += [node]
+        node = sg.SceneGraphNode('roadTile'+str(-1))
+        node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*-1)])
+        node.childs += [roads]
+        environment.childs += [node]
 
     return scene
