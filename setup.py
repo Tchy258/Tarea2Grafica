@@ -241,7 +241,7 @@ def createScene(pipeline):
     gpuDoor.texture = es.textureSimpleSetup(
         getAssetPath("puerta1.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
 
-    doors=sg.SceneGraphNode("doorType1")
+    doors=sg.SceneGraphNode("doorGroup1")
     doors.transform=tr.scale(0.22,0.44,0.04)
     doors.childs+=[gpuDoor]
     group1=sg.findNode(houses,"houseGroup1")
@@ -264,7 +264,7 @@ def createScene(pipeline):
     gpuLock.texture = es.textureSimpleSetup(
         getAssetPath("chapa.png"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
 
-    locks=sg.SceneGraphNode("locks1")
+    locks=sg.SceneGraphNode("lockGroup1")
     locks.transform=tr.matmul([tr.scale(0.01,0.01,0.024)])
     locks.childs+=[gpuLock]
 
@@ -274,6 +274,38 @@ def createScene(pipeline):
             node.transform = tr.matmul([tr.translate(-1.8*i-0.09, 0.25, -1.5*j+0.25)])
             node.childs += [locks]
             group1.childs += [node]
+
+    shapeWindow = bs.createWindow1()
+    gpuWindow = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuWindow)
+    gpuWindow.fillBuffers(
+        shapeWindow.vertices, shapeWindow.indices)
+    gpuWindow.texture = es.textureSimpleSetup(
+        getAssetPath("ventana1.png"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    windows=sg.SceneGraphNode("windowGroup1")
+    windows.transform=tr.scale(0.33,0.22,0.04)
+    windows.childs+=[gpuWindow]
+
+    for i in range(3):
+        for j in range(10):
+            node = sg.SceneGraphNode('windows1FirstFloor1'+str(i))
+            node.transform = tr.matmul([tr.translate(-1.8*i-0.6, 0.25, -1.5*j),tr.rotationY(np.pi/2)])
+            node.childs += [windows]
+            group1.childs += [node]
+            node = sg.SceneGraphNode('windows1FirstFloor2'+str(i))
+            node.transform = tr.matmul([tr.translate(-1.8*i, 0.28, -1.5*j-0.25),tr.scale(1.5,1.5,1)])
+            node.childs += [windows]
+            group1.childs += [node]
+            if i%2==0:
+                node = sg.SceneGraphNode('windows1SecondFloor1'+str(i))
+                node.transform = tr.matmul([tr.translate(-1.8*i-0.4, 0.85, -1.5*j),tr.rotationY(np.pi/2)])
+                node.childs += [windows]
+                group1.childs += [node]
+                node = sg.SceneGraphNode('windows1SecondFloor1'+str(i))
+                node.transform = tr.matmul([tr.translate(-1.8*i+0.2, 0.85, -1.5*j+0.25)])
+                node.childs += [windows]
+                group1.childs += [node]
 
     shapeDoor = bs.createDoor2()
     gpuDoor = es.GPUShape().initBuffers()
@@ -302,17 +334,41 @@ def createScene(pipeline):
     gpuFloor.texture = es.textureSimpleSetup(
         getAssetPath("piso.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
     
-    fieldNode = sg.SceneGraphNode('floor')
-    fieldNode.transform = tr.matmul(
+    environment = sg.SceneGraphNode("Environment")
+    scene.childs+=[environment]
+    floors = sg.SceneGraphNode('floor')
+    floors.transform = tr.matmul(
         [tr.translate(1.5, 0.0, 1.5), tr.scale(2,0.1,1.5)])
-    fieldNode.childs += [gpuFloor]
+    floors.childs += [gpuFloor]
 
     for i in range(16):
         for j in range(16):
             if i!=8 and i!=4:
                 node = sg.SceneGraphNode('tile'+str(i))
                 node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j)])
-                node.childs += [fieldNode]
-                scene.childs += [node]
+                node.childs += [floors]
+                environment.childs += [node]
+    
+    shapeRoad = bs.createTextureCube()
+    gpuRoad = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuRoad)
+    gpuRoad.fillBuffers(
+        shapeRoad.vertices, shapeRoad.indices)
+    gpuRoad.texture = es.textureSimpleSetup(
+        getAssetPath("pista.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+
+    roads = sg.SceneGraphNode('road')
+    roads.transform = tr.matmul(
+        [tr.rotationY(np.pi/2),tr.translate(-1.8, 0.0, 1.5), tr.scale(1.4,0.1,2)])
+    roads.childs+=[gpuRoad]
+    for j in range(17):
+            node = sg.SceneGraphNode('roadTile'+str(4))
+            node.transform = tr.matmul([tr.translate(-2*4, 0.0, -1.4*j-0.5)])
+            node.childs += [roads]
+            environment.childs += [node]
+            node = sg.SceneGraphNode('roadTile'+str(8))
+            node.transform = tr.matmul([tr.translate(-2*8, 0.0, -1.4*j-0.5)])
+            node.childs += [roads]
+            environment.childs += [node]
 
     return scene
