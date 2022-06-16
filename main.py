@@ -98,10 +98,10 @@ def check_key_inputs(window):
             controller.camPos[1]=6
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>8.25:
-            controller.camPos[2]=8.25
-        if controller.camPos[2]<-8.5:
-            controller.camPos[2]=-8.5
+        if controller.camPos[2]>12.25:
+            controller.camPos[2]=12.25
+        if controller.camPos[2]<-12.5:
+            controller.camPos[2]=-12.5
 
 
 def main():
