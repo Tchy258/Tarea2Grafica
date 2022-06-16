@@ -63,6 +63,25 @@ def shearing(xy=0, yx=0, xz=0, zx=0, yz=0, zy=0):
         [zx, zy,  1, 0],
         [0,  0,  0, 1]], dtype=np.float32)
 
+#Matriz auxiliar que calcule con propiedades de algebra lineal tal que al
+#multiplicar, el vertice superior de la piramide se mueve en exactamente -0.5 
+#en el eje x, y el resto de los vertices no se mueven
+def shearingTecho():
+    return np.array([
+        [1,-1/2,0,-1/4],
+        [0,1,0,0],
+        [0,0,1,0],
+        [0,0,0,1]
+    ], dtype=np.float32)
+
+#Inversa de la de arriba, multiplicarlas da la identidad y deshace el desplace
+def shearingDerecho():
+    return np.array([
+        [1,1/2,0,1/4],
+        [0,1,0,0],
+        [0,0,1,0],
+        [0,0,0,1]
+    ], dtype=np.float32)
 
 #Función auxiliar para multiplicar matrices
 def matmul(mats):
