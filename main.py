@@ -90,18 +90,21 @@ def check_key_inputs(window):
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos+=(sidewayVector*controller.camSpeed)
-        if controller.camPos[0]>14.25:
-            controller.camPos[0]=14.25
+        if controller.camPos[2]>-1.73841*controller.camPos[0] + 31.93194:
+            controller.camPos[2]=-1.73841*controller.camPos[0] + 31.93194
+            controller.camPos[0]=controller.camPos[2]/-1.73841 - 31.93194/-1.73841
+        if controller.camPos[0]>15.49:
+            controller.camPos[0]=15.49
         if controller.camPos[0]<-13.5:
             controller.camPos[0]=-13.5
         if controller.camPos[1]>6:
             controller.camPos[1]=6
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>12.25:
-            controller.camPos[2]=12.25
-        if controller.camPos[2]<-12.5:
-            controller.camPos[2]=-12.5
+        if controller.camPos[2]>14.25:
+            controller.camPos[2]=14.25
+        if controller.camPos[2]<-8.255:
+            controller.camPos[2]=-8.255
 
 
 def main():
@@ -129,7 +132,7 @@ def main():
     colorShaderProgram = es.SimpleModelViewProjectionShaderProgram()
     grafoEscena=createScene(textureShaderProgram)
     #Color del fondo
-    glClearColor(0.85, 0.85, 0.85, 1.0)
+    glClearColor(0.85, 0.85, 0.95, 1.0)
 
     #Testeo de profundidad para mostrar correctamente objetos 3D
     glEnable(GL_DEPTH_TEST)
