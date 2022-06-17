@@ -1,3 +1,4 @@
+#Archivo scene_graph.py del github
 # coding=utf-8
 """A simple scene graph class and functionality"""
 
@@ -10,7 +11,7 @@ import gpu_shape as gs
 __author__ = "Daniel Calderon"
 __license__ = "MIT"
 
-
+#Está clase forma los nodos del grafo de escena
 class SceneGraphNode:
     """
     A simple class to handle a scene graph
@@ -29,7 +30,7 @@ class SceneGraphNode:
         for child in self.childs:
             child.clear()
 
-    
+#Función para buscar en node, un nodo llamado name
 def findNode(node, name):
 
     # The name was not found in this path
@@ -49,7 +50,7 @@ def findNode(node, name):
     # No child of this node had the requested name
     return None
 
-
+#Para recuperar la transformación acumulada de algún nodo y multiplicarla con una nueva
 def findTransform(node, name, parentTransform=tr.identity()):
 
     # The name was not found in this path
@@ -82,7 +83,7 @@ def findPosition(node, name, parentTransform=tr.identity()):
 
     return None
 
-
+#Dibuja el grafo de escena
 def drawSceneGraphNode(node, pipeline, transformName, parentTransform=tr.identity()):
     assert(isinstance(node, SceneGraphNode))
 
