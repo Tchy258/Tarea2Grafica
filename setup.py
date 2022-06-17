@@ -1,3 +1,4 @@
+#Este archivo es donde se crean la mayoría de objetos
 from pyparsing import traceParseAction
 import transformations as tr
 from OpenGL.GL import *
@@ -6,9 +7,11 @@ import scene_graph as sg
 import basic_shapes as bs
 import easy_shaders as es
 from assets_path import getAssetPath
+
 #La función setProjection cambia la proyección en ambos shaders (textura y camara)
 #de ortografica a perspectiva según corresponda
 def setProjection(controller,pipeline, mvpPipeline, width, height):
+    #Se elijieron 40 y 22.5 para mantener la relación de aspecto 16:9
     if controller.IsOrtho:
         projection = tr.ortho(-40, 40, -22.5,22.5 , 0.1, 100)
     else:
@@ -22,7 +25,7 @@ def setProjection(controller,pipeline, mvpPipeline, width, height):
     glUniformMatrix4fv(glGetUniformLocation(
         pipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
 
-
+#Función que cambia la vista según se esta en el modo ortogfrafico o en perspectiva
 def setView(pipeline, mvpPipeline,controller):
     if controller.IsOrtho:
         controller.view = tr.lookAt(
@@ -46,6 +49,7 @@ def setView(pipeline, mvpPipeline,controller):
     glUniformMatrix4fv(glGetUniformLocation(
         pipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
 
+#Función que crea todo el grafo de escena
 def createScene(pipeline):
     #Creacion del nodo raiz
     scene = sg.SceneGraphNode('system')
@@ -121,10 +125,12 @@ def createScene(pipeline):
             node.childs += [roofs]
             houseGroup.childs += [node]
 
+    #Otro nodo para agrupar casas
     houseGroup= sg.SceneGraphNode('houseGroup2')
     houseGroup.transform = tr.identity()
     houses.childs+=[houseGroup]
-
+    #Mismos objetos anteriores con texturas diferentes y variaciones para el 
+    #segundo lote de casas
     shapeWalls = bs.createTextureCube()
     gpuWalls = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuWalls)
@@ -139,7 +145,6 @@ def createScene(pipeline):
 
     for i in range(4,7):
         for j in range(13):
-            #Se crea un nodo para sus paredes
             node = sg.SceneGraphNode('wall2'+str(i))
             node.transform = tr.matmul([tr.translate(-1.8*i, 0.3, -1.5*j),tr.scale(1.2,1,1)])
             node.childs += [walls]
@@ -177,6 +182,7 @@ def createScene(pipeline):
             node.childs += [roofs]
             houseGroup.childs += [node]
     
+    #Tercer grupo de casas
     houseGroup= sg.SceneGraphNode('houseGroup3')
     houseGroup.transform = tr.translate(-1.5,0,0)
     houses.childs+=[houseGroup]
@@ -195,7 +201,6 @@ def createScene(pipeline):
 
     for i in range(8,10):
         for j in range(5):
-            #Se crea un nodo para sus paredes
             node = sg.SceneGraphNode('wall3'+str(i))
             node.transform = tr.matmul([tr.translate(-1.8*i, 0.3, -2.5*j),tr.scale(1.2,1,1.5)])
             node.childs += [walls]
@@ -229,6 +234,7 @@ def createScene(pipeline):
             node.childs += [roofs]
             houseGroup.childs += [node]
 
+    #Se procede a hacer la creación de puertas, chapas y ventanas
     shapeDoor = bs.createDoor1()
     gpuDoor = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuDoor)
@@ -443,6 +449,7 @@ def createScene(pipeline):
                 node.childs += [windows]
                 group3.childs += [node]
     
+    #Se crea el piso de la calle
     shapeFloor = bs.createTextureCube()
     gpuFloor = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuFloor)
@@ -450,7 +457,7 @@ def createScene(pipeline):
         shapeFloor.vertices, shapeFloor.indices)
     gpuFloor.texture = es.textureSimpleSetup(
         getAssetPath("piso.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
-    
+    #Agregandolo a un nodo que representa al entorno de la escena
     environment = sg.SceneGraphNode("Environment")
     scene.childs+=[environment]
     floors = sg.SceneGraphNode('floor')
@@ -460,8 +467,9 @@ def createScene(pipeline):
 
     for i in range(1,12):
         for j in range(15):
+            #En i=8 e i=4 iran pistas de autos
             if i!=8 and i!=4:
-                if i<=9:
+                if i<9:
                     node = sg.SceneGraphNode('tile'+str(i))
                     node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j),tr.translate(1.5, 0.0, 1.5)])
                     node.childs += [floors]
@@ -472,17 +480,8 @@ def createScene(pipeline):
                         node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*j),tr.translate(1.5, 0.0, 1.5)])
                         node.childs += [floors]
                         environment.childs += [node]
-    shapeFloor = bs.createTexturePyramid()
-    gpuFloor = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpuFloor)
-    gpuFloor.fillBuffers(
-        shapeFloor.vertices, shapeFloor.indices)
-    gpuFloor.texture = es.textureSimpleSetup(
-        getAssetPath("piso.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
-    floors = sg.SceneGraphNode('floor2')
-    floors.transform = tr.matmul([tr.translate(-2*8-1,0,-1.4*12-0.4),tr.translate(-1.8, 0.05, 1.5),tr.rotationX(np.pi/2),tr.scale(4.38,8.105,0.1),tr.shearingTecho()])
-    floors.childs += [gpuFloor]
 
+    #Se crea la zona de pasto
     shapeGrass = bs.createTexturePyramid()
     gpuGrass = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuGrass)
@@ -491,10 +490,11 @@ def createScene(pipeline):
     gpuGrass.texture=es.textureSimpleSetup (
         getAssetPath("pasto.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
     grass = sg.SceneGraphNode('grass')
-    grass.transform = tr.matmul([tr.translate(-2*8-1,0,-1.4*12-0.4),tr.translate(-1.8, 0.05, 1.5),tr.rotationY(np.pi),tr.rotationX(np.pi/2),tr.scale(5.38,9.105,0.1),tr.shearingTecho()])
+    grass.transform = tr.matmul([tr.translate(-2*8-0.6,0,-1.4*12-0.4),tr.translate(-1.9, 0.05, 1.5),tr.rotationY(np.pi),tr.rotationX(np.pi/2),tr.scale(6,8.9,0.1),tr.shearingTecho()])
     grass.childs+=[gpuGrass]
     environment.childs+=[grass]
 
+    #Pistas de auto
     shapeRoad = bs.createTextureCube()
     gpuRoad = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuRoad)
@@ -502,7 +502,7 @@ def createScene(pipeline):
         shapeRoad.vertices, shapeRoad.indices)
     gpuRoad.texture = es.textureSimpleSetup(
         getAssetPath("pista.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
-
+    #En sentido "vertical" según la proyección ortografica
     roads = sg.SceneGraphNode('roadV')
     roads.transform = tr.matmul(
         [tr.translate(1.5, 0.0, 1.5), tr.scale(2,0.1,1.5),tr.rotationY(np.pi/2)])
@@ -525,13 +525,13 @@ def createScene(pipeline):
             node.transform = tr.matmul([tr.translate(-2*0, 0.0, -1.5*j)])
             node.childs += [roads]
             environment.childs += [node]
-
+    #En sentido "horizontal"
     roads = sg.SceneGraphNode('roadH')
     roads.transform = tr.matmul(
         [tr.translate(1.5, 0.0, 1.5), tr.scale(2,0.1,1.5)])
     roads.childs+=[gpuRoad]
     for i in range(13):
-        if i<10:
+        if i<9:
             node = sg.SceneGraphNode('roadTile'+str(15))
             node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*15)])
             node.childs += [roads]
@@ -540,5 +540,18 @@ def createScene(pipeline):
         node.transform = tr.matmul([tr.translate(-2*i, 0.0, -1.5*-1)])
         node.childs += [roads]
         environment.childs += [node]
+    #Pista en diagonal
+    roadGroup = sg.SceneGraphNode('roadGroup')
+    roadGroup.transform=tr.matmul([tr.translate(-22.4,0,-10.69),tr.rotationY(0.99365)])
+    environment.childs+=[roadGroup]
+    roads = sg.SceneGraphNode('roadD')
+    roads.transform = tr.matmul(
+        [ tr.scale(2.05,0.1,1.24)])
+    roads.childs+=[gpuRoad]
+    for i in range(7):
+        node = sg.SceneGraphNode('roadTile'+str(-1))
+        node.transform = tr.matmul([tr.translate(2.05*i,0,0)])
+        node.childs += [roads]
+        roadGroup.childs += [node]
 
     return scene
