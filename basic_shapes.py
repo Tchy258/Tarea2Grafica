@@ -94,6 +94,8 @@ def createTexturePyramid():
 
     return Shape(vertices, indices)
 
+#Función para crear un cilindro texturizado de suavidad N, en particular se uso para las
+#chapas de las puertas
 def createTextureCilinder(N):
 
     H=1
@@ -171,6 +173,7 @@ def createTextureCilinder(N):
     return Shape(vertexData, indexData)
 
 #Funcion para crear la puerta1 con las coordenadas de textura correctas
+#Es igual a la del cubo pero con distintas coordenadas
 def createDoor1():
 
     # Defining locations and texture coordinates for each vertex of the shape
@@ -225,6 +228,7 @@ def createDoor1():
 
     return Shape(vertices, indices)
 
+#Lo mismo para la puerta 2
 def createDoor2():
 
     # Defining locations and texture coordinates for each vertex of the shape
