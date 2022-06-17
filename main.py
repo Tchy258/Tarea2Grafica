@@ -8,10 +8,9 @@ import numpy as np
 import transformations as tr
 import scene_graph as sg
 import constants
-import math
-import random
 from controller import Controller
 
+#Objeto para controlar la camara
 controller=Controller()
 
 #Funcion para manejar el movimiento del mouse
@@ -63,7 +62,7 @@ def mouse_button_callback(window,button,action,mods):
             glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
             controller.cursorShouldHide=True
 
-
+#Funciones para teclas
 def on_key(window, key, scancode, action, mods):
 
 
@@ -76,35 +75,41 @@ def on_key(window, key, scancode, action, mods):
 
 def check_key_inputs(window):
     if not controller.IsOrtho:
+        #Con shift se va más rápido
         if glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.PRESS or glfw.get_key(window, glfw.KEY_LEFT_SHIFT)==glfw.REPEAT:
             controller.camSpeed*=4
+        #WASD para moverse, W y S solo suman o restan su producto con el vector look at de la camara
         if glfw.get_key(window, glfw.KEY_W)==glfw.PRESS or glfw.get_key(window, glfw.KEY_W)==glfw.REPEAT:
             controller.camPos+=controller.camFront*controller.camSpeed
         if glfw.get_key(window, glfw.KEY_S)==glfw.PRESS or glfw.get_key(window, glfw.KEY_S)==glfw.REPEAT:
             controller.camPos-=controller.camFront*controller.camSpeed
+        #A y D usan un producto cruz para calcular que es derecha y que es izquierda para la vista actual
         if glfw.get_key(window, glfw.KEY_A)==glfw.PRESS or glfw.get_key(window, glfw.KEY_A)==glfw.REPEAT:
             sidewayVector=np.cross(controller.camFront,controller.camUp)
+            #Estos vectores se normalizan para no ir más rápido solo cuando se mira a cierta dirección
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos-=(sidewayVector*controller.camSpeed)
         if glfw.get_key(window, glfw.KEY_D)==glfw.PRESS or glfw.get_key(window, glfw.KEY_D)==glfw.REPEAT:
             sidewayVector=np.cross(controller.camFront,controller.camUp)
             sidewayVector/=np.linalg.norm(sidewayVector)
             controller.camPos+=(sidewayVector*controller.camSpeed)
-        if controller.camPos[2]>-1.73841*controller.camPos[0] + 31.93194:
-            controller.camPos[2]=-1.73841*controller.camPos[0] + 31.93194
-            controller.camPos[0]=controller.camPos[2]/-1.73841 - 31.93194/-1.73841
-        if controller.camPos[0]>15.49:
-            controller.camPos[0]=15.49
-        if controller.camPos[0]<-13.5:
-            controller.camPos[0]=-13.5
+        #Limites de la escena, este primer if es la función de la recta que delimita la línea diagonal
+        #del pentagono, en la pista al lado del pasto
+        if controller.camPos[2]>-1.44245*controller.camPos[0] + 29.31872:
+            controller.camPos[2]=-1.44245*controller.camPos[0] + 29.31872
+            controller.camPos[0]=controller.camPos[2]/-1.44245 - 29.31872/-1.44245
+        if controller.camPos[0]>17.4:
+            controller.camPos[0]=17.4
+        if controller.camPos[0]<-8.5:
+            controller.camPos[0]=-8.5
         if controller.camPos[1]>6:
             controller.camPos[1]=6
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>14.25:
-            controller.camPos[2]=14.25
-        if controller.camPos[2]<-8.255:
-            controller.camPos[2]=-8.255
+        if controller.camPos[2]>15.5:
+            controller.camPos[2]=15.5
+        if controller.camPos[2]<-9.7:
+            controller.camPos[2]=-9.7
 
 
 def main():
@@ -141,31 +146,32 @@ def main():
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     #Para que la ventana registre los clicks del mouse
     glfw.set_mouse_button_callback(window, mouse_button_callback)
-
+    #Para registrar la posición del mouse
     glfw.set_cursor_pos_callback(window,cursor_pos_callback)
+    #Calculos de tiempo para el movimiento de la cámara
     t0 = glfw.get_time()
     t1 = t0
     while not glfw.window_should_close(window):
         t1=glfw.get_time()
         dt=t1-t0
         t0=t1
+        #La velocidad actual será la velocidad base multiplicada por dt
         controller.camSpeed=controller.camBaseSpeed*dt
         glfw.poll_events()
         check_key_inputs(window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        print(controller.camPos)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
+        #Se cambian la vista y proyección de ser necesario
         setView(textureShaderProgram,colorShaderProgram,controller)
         setProjection(controller, textureShaderProgram,colorShaderProgram,constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT)
 
         glUseProgram(textureShaderProgram.shaderProgram)
+        #Se dibuja la escena
         sg.drawSceneGraphNode(grafoEscena, textureShaderProgram, "model")
 
         glfw.swap_buffers(window)
     
     grafoEscena.clear()
-    
 if __name__ == "__main__":
 
     main()
