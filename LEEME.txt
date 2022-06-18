@@ -1,0 +1,3 @@
+Tarea 2 Opcion 2
+No tuve tiempo para hacer las curvas, para moverse se usa WASD, la camara se mueve con el mouse, más uqe ponerle chapas a las
+puertas no tuve tiempo para agregar algún detalle creativo
