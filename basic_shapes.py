@@ -67,6 +67,52 @@ def createTextureCube():
 
     return Shape(vertices, indices)
 
+def createTextureTrapezoid():
+
+    # Defining locations and texture coordinates for each vertex of the shape
+    vertices = [
+        #   positions         texture coordinates
+        # Z+
+        -0.5, -0.5,  0.5, 0, 1,
+        0.5, -0.5,  0.5, 1, 1,
+        0.375,  0.5,  -0.5, 1, 0,
+        -0.375,  0.5,  -0.5, 0, 0,
+
+        # Z-
+        -0.5, -0.5, -0.5, 0, 1,
+        0.5, -0.5, -0.5, 1, 1,
+        0.375,  0.5, -0.5, 1, 0,
+        -0.375,  0.5, -0.5, 0, 0,
+
+        # X+
+        0.5, -0.5, -0.5, 0, 1,
+        0.5,  -0.5, 0.5, 1, 1,
+        0.375,  0.5,  -0.5, 0, 0.5,
+
+        # X-
+        -0.5, -0.5, -0.5, 0, 1,
+        -0.5,  -0.5,  0.5, 1, 1,
+        -0.375,  0.5, -0.5, 0, 0.5,
+
+
+        # Y-
+        -0.5, -0.5, -0.5, 0, 1,
+        0.5, -0.5, -0.5, 1, 1,
+        0.5, -0.5,  0.5, 1, 0,
+        -0.5, -0.5,  0.5, 0, 0
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2, 2, 3, 0,  # Z+
+        7, 4, 5, 5, 6, 7,  # Z-
+        8, 9, 10,   # X+
+        11,12,13,  # X-
+        14,15,16,16,17,14]  # Y-
+
+    return Shape(vertices, indices)
+
 def createTexturePyramid():
 
     vertices = [
