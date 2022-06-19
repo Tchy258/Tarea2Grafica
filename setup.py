@@ -53,7 +53,6 @@ def setView(pipeline, mvpPipeline,controller):
 def createScene(pipeline):
     #Creacion del nodo raiz
     scene = sg.SceneGraphNode('system')
-    scene.transform=tr.matmul([tr.translate(-6,0,-6),tr.rotationY(-np.pi)])
     #Nodo hijo que contiene los grupos de casas, no hay una transformación común a todas las casas así que tiene la identidad
     houses= sg.SceneGraphNode('houses')
     houses.transform = tr.translate(-1.2,0,0)
@@ -61,69 +60,68 @@ def createScene(pipeline):
 
     #Nodo hijo del nodo houses que tiene un grupo de casas
     houseGroup= sg.SceneGraphNode('houseGroup1')
-    houseGroup.transform = tr.translate(0.5,0,0)
+    #houseGroup.transform = tr.translate(0.5,0,0)
     houses.childs+=[houseGroup]
 
     #Creacion de las paredes del primer grupo de casas, como un prisma de base cuadrada
-    shapeWalls = bs.createTextureCube()
-    gpuWalls = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpuWalls)
-    gpuWalls.fillBuffers(
-        shapeWalls.vertices, shapeWalls.indices)
-    gpuWalls.texture = es.textureSimpleSetup(
-        getAssetPath("ladrillo1.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    #shapeWalls = bs.createTextureCube()
+    #gpuWalls = es.GPUShape().initBuffers()
+    #pipeline.setupVAO(gpuWalls)
+    #gpuWalls.fillBuffers(
+    #    shapeWalls.vertices, shapeWalls.indices)
+    #gpuWalls.texture = es.textureSimpleSetup(
+    #    getAssetPath("ladrillo1.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
 
     #Nodo que contiene el gpuShape del primer grupo de paredes, todas estas tienen un escalado y una traslación
     #que cumple función de "offset" respecto al origen
-    walls = sg.SceneGraphNode('wallGroup1')
-    walls.transform = tr.scale(1,0.5,0.5)
-    walls.childs += [gpuWalls]
-
+    #walls = sg.SceneGraphNode('wallGroup1')
+    #walls.transform = tr.scale(1,0.5,0.5)
+    #walls.childs += [gpuWalls]
+    gpuList=[setupWalls(pipeline,"ladrillo1.jpg"),setupRoof(pipeline,"tejado1.jpg"), \
+            setupDoor(pipeline,"puerta1.jpg"),setupLock(pipeline),setupWindow(pipeline,"ventana1.png"), \
+            setupRoof2(pipeline,"tejado1.jpg") ]
     #Imaginando el grupo de casas como un tablero de ajedrez equiespaciado
     for i in range(3):
         for j in range(13):
             #Se crea un nodo para sus paredes
-            node = sg.SceneGraphNode('wall1.'+str(i))
-            node.transform = tr.matmul([tr.translate(-1.8*i, 0.3, -1.5*j),tr.scale(1.2,1,1)])
-            node.childs += [walls]
-            houseGroup.childs += [node]
-            #Y otro para el segundo piso
             if i%2==0:
-                node = sg.SceneGraphNode('secondFloor1'+str(i))
-                node.transform = tr.matmul([tr.translate(-1.8*i, 0.8, -1.5*j),tr.translate(0.1, 0, 0)])
-                node.childs += [walls]
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.8*i,1.5*j,2)
                 houseGroup.childs += [node]
+            else:
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.8*i,1.5*j,1)
+                houseGroup.childs += [node]
+            #Y otro para el segundo piso
 
     #Creacion de los techos
-    shapeRoof = bs.createTexturePyramid()
-    gpuRoof = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpuRoof)
-    gpuRoof.fillBuffers(
-        shapeRoof.vertices, shapeRoof.indices)
-    gpuRoof.texture = es.textureSimpleSetup(
-        getAssetPath("tejado1.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    #shapeRoof = bs.createTexturePyramid()
+    #gpuRoof = es.GPUShape().initBuffers()
+    #pipeline.setupVAO(gpuRoof)
+    #gpuRoof.fillBuffers(
+    #    shapeRoof.vertices, shapeRoof.indices)
+    #gpuRoof.texture = es.textureSimpleSetup(
+    #    getAssetPath("tejado1.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
 
     #Estos deben ser ligeramente más anchos que las casas, y se escalan según ello
-    roofs = sg.SceneGraphNode('roofGroup1')
+    #roofs = sg.SceneGraphNode('roofGroup1')
     #Estas matrices se aplicaran a distintos tipos de techo
-    techoEnderezado=tr.matmul([tr.scale(1.2,0.5,0.7)])
-    techoMovido=tr.matmul([tr.scale(0.26,0.3,1),tr.scale(1.1,0.5,0.6),tr.rotationY(np.pi),tr.shearingTecho()])
-    roofs.transform = tr.identity()
-    roofs.childs += [gpuRoof]
+    #techoEnderezado=tr.matmul([tr.scale(1.2,0.5,0.7)])
+    #techoMovido=tr.matmul([tr.scale(0.26,0.3,1),tr.scale(1.1,0.5,0.6),tr.rotationY(np.pi),tr.shearingTecho()])
+    #roofs.transform = tr.identity()
+    #roofs.childs += [gpuRoof]
 
-    for i in range(3):
-        for j in range(13):
-            node = sg.SceneGraphNode('roof1.'+str(i))
-            if i%2==0:
-                node.transform = tr.matmul([tr.translate(-1.8*i+0.1, 1.301, -1.5*j),techoEnderezado])
-                node2=sg.SceneGraphNode('roof1extra'+str(i))
-                node2.transform = tr.matmul([tr.translate(-1.8*i-0.545, 0.625, -1.5*j),techoMovido])
-                node2.childs+=[roofs]
-                houseGroup.childs+=[node2]
-            else:
-                node.transform = tr.matmul([tr.translate(-1.8*i, 0.805, -1.5*j),tr.scale(1.2,1,1),techoEnderezado])
-            node.childs += [roofs]
-            houseGroup.childs += [node]
+    #for i in range(3):
+    #    for j in range(13):
+    #        node = sg.SceneGraphNode('roof1.'+str(i))
+    #        if i%2==0:
+    #            node.transform = tr.matmul([tr.translate(-1.8*i+0.1, 1.301, -1.5*j),techoEnderezado])
+    #            node2=sg.SceneGraphNode('roof1extra'+str(i))
+    #            node2.transform = tr.matmul([tr.translate(-1.8*i-0.545, 0.625, -1.5*j),techoMovido])
+    #            node2.childs+=[roofs]
+    #            houseGroup.childs+=[node2]
+    #        else:
+    #            node.transform = tr.matmul([tr.translate(-1.8*i, 0.805, -1.5*j),tr.scale(1.2,1,1),techoEnderezado])
+    #        node.childs += [roofs]
+    #        houseGroup.childs += [node]
 
     #Otro nodo para agrupar casas
     houseGroup= sg.SceneGraphNode('houseGroup2')
@@ -347,7 +345,7 @@ def createScene(pipeline):
             node.childs += [locks]
             group2.childs += [node]
     
-    shapeWindow = bs.createWindow1()
+    shapeWindow = bs.createWindow2()
     gpuWindow = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuWindow)
     gpuWindow.fillBuffers(
@@ -555,3 +553,158 @@ def createScene(pipeline):
         roadGroup.childs += [node]
 
     return scene
+
+def setupWalls(pipeline,imgName):
+    shapeWalls = bs.createTextureCube()
+    gpuWalls = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuWalls)
+    gpuWalls.fillBuffers(
+        shapeWalls.vertices, shapeWalls.indices)
+    gpuWalls.texture = es.textureSimpleSetup(
+        getAssetPath(imgName), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+
+    return gpuWalls
+
+def setupRoof(pipeline,imgName):
+    shapeRoof = bs.createTexturePyramid()
+    gpuRoof = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuRoof)
+    gpuRoof.fillBuffers(
+        shapeRoof.vertices, shapeRoof.indices)
+    gpuRoof.texture = es.textureSimpleSetup(
+        getAssetPath(imgName), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuRoof
+
+def setupRoof2(pipeline,imgName):
+    shapeRoof = bs.createTextureTrapezoid()
+    gpuRoof = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuRoof)
+    gpuRoof.fillBuffers(
+        shapeRoof.vertices, shapeRoof.indices)
+    gpuRoof.texture = es.textureSimpleSetup(
+        getAssetPath(imgName), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuRoof
+
+def setupDoor(pipeline,name):
+    shapeDoor =bs.createDoor1() if name=="puerta1.jpg" else bs.createDoor2()
+    gpuDoor = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuDoor)
+    gpuDoor.fillBuffers(
+        shapeDoor.vertices, shapeDoor.indices)
+    gpuDoor.texture = es.textureSimpleSetup(
+        getAssetPath(name), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuDoor
+
+def setupLock(pipeline):
+    shapeLock = bs.createTextureCilinder(15)
+    gpuLock = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuLock)
+    gpuLock.fillBuffers(
+        shapeLock.vertices, shapeLock.indices)
+    gpuLock.texture = es.textureSimpleSetup(
+        getAssetPath("chapa.png"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuLock
+
+def setupWindow(pipeline,name):
+    shapeWindow = bs.createWindow2() if name=="ventana2.png" else bs.createWindow1()
+    gpuWindow = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuWindow)
+    gpuWindow.fillBuffers(
+        shapeWindow.vertices, shapeWindow.indices)
+    gpuWindow.texture = es.textureSimpleSetup(
+        getAssetPath(name), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuWindow
+
+def setupFloor(pipeline):
+    shapeFloor = bs.createTextureCube()
+    gpuFloor = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuFloor)
+    gpuFloor.fillBuffers(
+        shapeFloor.vertices, shapeFloor.indices)
+    gpuFloor.texture = es.textureSimpleSetup(
+        getAssetPath("piso.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+
+    return gpuFloor
+
+def setupGrass(pipeline):
+    shapeGrass = bs.createTexturePyramid()
+    gpuGrass = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuGrass)
+    gpuGrass.fillBuffers(
+        shapeGrass.vertices,shapeGrass.indices)
+    gpuGrass.texture=es.textureSimpleSetup (
+        getAssetPath("pasto.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuGrass
+
+def setupRoad(pipeline):
+    shapeRoad = bs.createTextureCube()
+    gpuRoad = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpuRoad)
+    gpuRoad.fillBuffers(
+        shapeRoad.vertices, shapeRoad.indices)
+    gpuRoad.texture = es.textureSimpleSetup(
+        getAssetPath("pista.jpg"), GL_REPEAT, GL_REPEAT, GL_LINEAR, GL_LINEAR)
+    
+    return gpuRoad
+
+def createHouseNode(name,gpuList,posX,posZ,type):
+    nodoCasa = sg.SceneGraphNode(name)
+    nodoCasa.transform=tr.translate(posX,0.2,posZ)
+
+    wall=gpuList[0]
+    nodoParedes=sg.SceneGraphNode(name + " walls")
+    nodoParedes.childs+=[wall]
+    nodoParedes.transform=tr.matmul([tr.translate(0,0.2,0),tr.scale(0.5,0.5,1)])
+    nodoCasa.childs+=[nodoParedes]
+    roof=gpuList[1]
+    nodoTecho=sg.SceneGraphNode(name + " roof")
+    nodoTecho.childs+=[roof]
+    nodoTecho.transform=tr.matmul([tr.translate(0,0.7,0),tr.scale(0.75,0.45,1.5)])
+    nodoCasa.childs+=[nodoTecho]
+    door=gpuList[2]
+    nodoPuerta=sg.SceneGraphNode(name + " door")
+    nodoMarco=sg.SceneGraphNode(name + " door")
+    nodoMarco.childs+=[door]
+    nodoMarco.transform=tr.matmul([tr.translate(0.25,0.2,0.1),tr.rotationY(np.pi/2),tr.scale(0.22,0.44,0.04)])
+    lock=gpuList[3]
+    nodoChapa=sg.SceneGraphNode(name + " chapa")
+    nodoChapa.childs+=[lock]
+    nodoChapa.transform=tr.matmul([tr.translate(0.25,0.17,0.1885),tr.rotationY(np.pi/2),tr.scale(0.01,0.01,0.024)])
+    nodoCasa.childs+=[nodoChapa]
+    nodoPuerta.childs+=[nodoMarco,nodoChapa]
+    nodoCasa.childs+=[nodoPuerta]
+    window=gpuList[4]
+    nodoVentana1=sg.SceneGraphNode(name + " window1")
+    nodoVentana1.childs+=[window]
+    nodoVentana1.transform=tr.matmul([tr.translate(-0.25,0.25,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
+    nodoCasa.childs+=[nodoVentana1]
+    nodoVentana2=sg.SceneGraphNode(name + " window2")
+    nodoVentana2.childs+=[window]
+    nodoVentana2.transform=tr.matmul([tr.translate(0,0.25,-0.49),tr.scale(0.33,0.22,0.04)])
+    nodoCasa.childs+=[nodoVentana2]
+
+    if type==2:
+        nodoSegundoPiso=sg.SceneGraphNode(name + " second floor")
+        nodoSegundoPiso.childs+=[wall]
+        nodoSegundoPiso.transform=tr.matmul([tr.translate(0,0.7005,0),tr.scale(0.5,0.5,0.8)])
+        nodoCasa.childs+=[nodoSegundoPiso]
+        roof2=gpuList[5]
+        nodoTecho=sg.findNode(nodoCasa,name + " roof")
+        nodoTecho.transform=tr.matmul([tr.translate(0,1.09,0),tr.scale(0.75,0.45,1)])
+        nodoTecho2=sg.SceneGraphNode(name + " second roof")
+        nodoTecho2.childs+=[roof2]
+        nodoTecho2.transform=tr.matmul([tr.translate(0,0.55,1),tr.rotationY(np.pi),tr.scale(0.6,0.2,0.2)])
+        nodoCasa.childs+=[nodoTecho2]
+        nodoTecho3=sg.SceneGraphNode(name + " third roof")
+        nodoTecho3.childs+=[roof2]
+        nodoTecho3.transform=tr.matmul([tr.translate(0,0.55,-1),tr.scale(0.6,0.2,0.2)])
+        nodoCasa.childs+=[nodoTecho3]
+
+
+    return nodoCasa
