@@ -8,7 +8,7 @@ class Controller:
         self.cameraThetaAngle = 0
         self.camBaseSpeed=0.5
         self.camSpeed= 0.7
-        self.camPos=np.array([9,0.2,6.0])
+        self.camPos=np.array([-0.7,0.2,14.7])
         self.camFront=np.array([1.,0.,0.])
         self.camUp=np.array([0.,1.,0.])
         self.IsOrtho=False
