@@ -95,21 +95,21 @@ def check_key_inputs(window):
             controller.camPos+=(sidewayVector*controller.camSpeed)
         #Limites de la escena, este primer if es la función de la recta que delimita la línea diagonal
         #del pentagono, en la pista al lado del pasto
-        if controller.camPos[2]>-1.44245*controller.camPos[0] + 29.31872:
-            controller.camPos[2]=-1.44245*controller.camPos[0] + 29.31872
-            controller.camPos[0]=controller.camPos[2]/-1.44245 - 29.31872/-1.44245
-        if controller.camPos[0]>17.4:
-            controller.camPos[0]=17.4
-        if controller.camPos[0]<-8.5:
-            controller.camPos[0]=-8.5
+        # if controller.camPos[2]>-1.44245*controller.camPos[0] + 29.31872:
+        #     controller.camPos[2]=-1.44245*controller.camPos[0] + 29.31872
+        #     controller.camPos[0]=controller.camPos[2]/-1.44245 - 29.31872/-1.44245
+        if controller.camPos[0]>2.2:
+            controller.camPos[0]=2.2
+        if controller.camPos[0]<-12.6:
+            controller.camPos[0]=-12.6
         if controller.camPos[1]>6:
             controller.camPos[1]=6
         if controller.camPos[1]<0.2:
             controller.camPos[1]=0.2
-        if controller.camPos[2]>15.5:
-            controller.camPos[2]=15.5
-        if controller.camPos[2]<-9.7:
-            controller.camPos[2]=-9.7
+        if controller.camPos[2]>19.5:
+            controller.camPos[2]=19.5
+        if controller.camPos[2]<-2:
+            controller.camPos[2]=-2
 
 
 def main():
@@ -157,6 +157,7 @@ def main():
         t0=t1
         #La velocidad actual será la velocidad base multiplicada por dt
         controller.camSpeed=controller.camBaseSpeed*dt
+        print(controller.camPos)
         glfw.poll_events()
         check_key_inputs(window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
