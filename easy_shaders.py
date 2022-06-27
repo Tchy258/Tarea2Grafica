@@ -379,6 +379,8 @@ class SimpleTextureModelViewProjectionShaderProgram:
             void main()
             {
                 outColor = texture(samplerTex, outTexCoords);
+                if(outColor.a < 0.1)
+                discard;
             }
             """
 
