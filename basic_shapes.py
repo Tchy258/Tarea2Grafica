@@ -140,6 +140,51 @@ def createTexturePyramid():
 
     return Shape(vertices, indices)
 
+def createGrass():
+
+    # Defining locations and texture coordinates for each vertex of the shape
+    vertices = [
+        #   positions         texture coordinates
+        # Z+/X-
+        -0.5, -0.5,  -0.5, 0, 1,
+        -0.5, 0.5,  -0.5, 1, 1,
+        0.5,  -0.5,  0.5, 1, 0,
+        0.5,  0.5,  0.5, 0, 0,
+
+        # Z-
+        -0.5, -0.5, -0.5, 0, 1,
+        0.5, -0.5, -0.5, 1, 1,
+        0.5,  0.5, -0.5, 1, 0,
+        -0.5,  0.5, -0.5, 0, 0,
+
+        # X+
+        0.5, -0.5, -0.5, 0, 1,
+        0.5,  0.5, -0.5, 0, 0,
+        0.5,  0.5,  0.5, 1, 0,
+        0.5, -0.5,  0.5, 1, 1,
+
+        # Y+
+        -0.5,  0.5, -0.5, 0, 1,
+        0.5,  0.5, -0.5, 1, 1,
+        0.5,  0.5,  0.5, 1, 0,
+
+        # Y-
+        -0.5, -0.5, -0.5, 0, 1,
+        0.5, -0.5, -0.5, 1, 1,
+        0.5, -0.5,  0.5, 1, 0,
+    ]
+
+    # Defining connections among vertices
+    # We have a triangle every 3 indices specified
+    indices = [
+        0, 1, 2, 2, 3, 1,  # Z+/X-
+        7, 4, 5, 5, 6, 7,  # Z-
+        8, 9, 10, 10, 11, 8,  # X+
+        12, 13, 14,  # Y+
+        15, 16, 17]  # Y-
+
+    return Shape(vertices, indices)
+
 #Función para crear un cilindro texturizado de suavidad N, en particular se uso para las
 #chapas de las puertas
 def createTextureCilinder(N,D):
