@@ -142,7 +142,7 @@ def createTexturePyramid():
 
 #Función para crear un cilindro texturizado de suavidad N, en particular se uso para las
 #chapas de las puertas
-def createTextureCilinder(N):
+def createTextureCilinder(N,D):
 
     H=1
     vertexData=[0.,0.,-H, 1/2,1/2]
@@ -152,7 +152,7 @@ def createTextureCilinder(N):
     R=1
     z=-H
     #Vertices tapa inferior
-    for i in range(N):
+    for i in range(D):
         phi=dphi*i
         x=R*np.cos(phi)
         y=R*np.sin(phi)
@@ -162,7 +162,7 @@ def createTextureCilinder(N):
             ]
     z=H
     #Vertices tapa superior
-    for i in range(N):
+    for i in range(D):
         phi=dphi*i
         x=R*np.cos(phi)
         y=R*np.sin(phi)
@@ -173,14 +173,14 @@ def createTextureCilinder(N):
     vertexData+=[0.,0.,H, 1/2,1/2]
     
     #Indices tapa inferior
-    for i in range(1,N):
+    for i in range(1,D):
         indexData+= [0,i,i+1]
-    indexData+= [0,N,1]
+    indexData+= [0,D,1]
     #Indices tapa superior
-    for i in range(1,N):
-        indexData+= [N+1,N+i,N+i+1]
+    for i in range(1,D):
+        indexData+= [D+1,D+i,D+i+1]
     #Vertices laterales del cilindro
-    for i in range(N+1):
+    for i in range(D+1):
         phi=dphi*i
         x=R*np.cos(phi)
         y=R*np.sin(phi)
@@ -205,7 +205,7 @@ def createTextureCilinder(N):
                     x, y, H, 112/1055. , 352/1055.
                 ]
     #indices laterales del cilindro
-    for i in range(2*N-4,len(vertexData),2):
+    for i in range(2*D-4,len(vertexData),2):
         #|\
         #---
         indexData+= [
