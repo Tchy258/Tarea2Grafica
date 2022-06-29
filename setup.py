@@ -1,5 +1,6 @@
 #Este archivo es donde se crean la mayoría de objetos
 from pyparsing import traceParseAction
+from setuptools import setup
 import transformations as tr
 from OpenGL.GL import *
 import numpy as np
@@ -125,10 +126,10 @@ def createScene(pipeline):
     floors = sg.SceneGraphNode('floorTiles')
     for i in range(-1,8,1):
         if i!=-1 and i!=2 and i!=5:
-            if i==0:
+            if i==0 or i==1:
                 stretch=createEnvNode("stretch " +str(i),gpuFloor,"V",10)
             else:
-                stretch=createEnvNode("stretch " +str(i),gpuFloor,"V",10)
+                stretch=createEnvNode("stretch " +str(i),gpuFloor,"V",13)
             stretch.transform=tr.matmul([tr.translate(-1.5*i,0,0),stretch.transform])
             floors.childs+=[stretch]
 
@@ -161,23 +162,27 @@ def createScene(pipeline):
     roads.childs+=[roadsV]
     #En sentido "horizontal"
     roadsH = sg.SceneGraphNode('roadH')
-    stretch=createEnvNode("stretch lower",gpuRoad,"H",8,"Road")
-    stretch.transform=tr.matmul([tr.translate(-1.5*7,0,-1.5),stretch.transform])
+    stretch=createEnvNode("stretch lower",gpuRoad,"H",9,"Road")
+    stretch.transform=tr.matmul([tr.translate(-1.5*8,0,-1.5),stretch.transform])
     roadsH.childs+=[stretch]
-    stretch=createEnvNode("stretch upper",gpuRoad,"H",8,"Road")
-    stretch.transform=tr.matmul([tr.translate(-1.5*7,0,1.5*13),stretch.transform])
+    stretch=createEnvNode("stretch upper",gpuRoad,"H",7,"Road")
+    stretch.transform=tr.matmul([tr.translate(-1.5*8,0,1.5*13),stretch.transform])
     roadsH.childs+=[stretch]
     roads.childs+=[roadsH]
     gpuRoad2=setupGpu(pipeline,"pista.jpg",2)
     curvedRoads=sg.SceneGraphNode("curvedRoads")
     curve=createEnvNode("curve1",gpuRoad2,"C",1,"Road")
-    curve.transform=tr.matmul([tr.translate(-1.5*-1-0.25,0,1.5*10-0.125),tr.shearing(0,0,-0.4),curve.transform])
+    curve.transform=tr.matmul([tr.translate(1.5-0.135,0,14.66445),tr.shearing(0,0,-0.306,0.0055),curve.transform])
+    curve2=createEnvNode("curve2",gpuRoad2,"C",1,"Road")
+    curve2.transform=tr.matmul([tr.translate(-2.2,0,19.7),tr.rotationY(-np.pi/4),tr.shearing(0,0,-0.2,-0.4),tr.scale(1.3,1,2.1),curve2.transform])
+    curvedRoads.childs+=[curve2]
     curvedRoads.childs+=[curve]
     roads.childs+=[curvedRoads]
     diagonalRoads=sg.SceneGraphNode("diagonalRoads")
-    stretch=createEnvNode("stretch " + str(i),gpuRoad,"D",4,"Road")
-    stretch.transform=tr.matmul([tr.translate(-1.5*-1,1,15),stretch.transform])
-    roadsV.childs+=[stretch]
+    stretch=createEnvNode("stretch " + str(i),gpuRoad,"H",3,"Road")
+    stretch.transform=tr.matmul([tr.translate(-1.12,0,18.41),tr.rotationY(np.arctan(4.5/3)),tr.scale(1.2,1,1),stretch.transform])
+    diagonalRoads.childs+=[stretch]
+    roads.childs+=[diagonalRoads]
     environment.childs+=[roads]
     
 
@@ -189,7 +194,7 @@ def setupGpu(pipeline,imgName,param=0):
     name=name[:-1] if name[-1].isnumeric() else name
     if (name=="ladrillo" or name=="piso" or name=="pista") and param==0:
         shape = bs.createTextureCube()
-    elif name=="tejado":
+    elif name=="tejado" or param==3:
         shape = bs.createTexturePyramid()
     elif name=="pasto" or param==2:
         shape = bs.createGrass()
@@ -301,9 +306,9 @@ def createEnvNode(name,gpu,direction,length,type="Floor"):
     if direction=="C":
         nodoCuadro=sg.SceneGraphNode(name + " tile")
         if type=="Road":
-            nodoCuadro.transform=tr.matmul([tr.scale(1.5,0.1,1.25),tr.rotationY(-np.pi/2),tr.rotationZ(np.pi)])
+            nodoCuadro.transform=tr.matmul([tr.scale(1.52,0.1005,0.8425),tr.rotationY(-np.pi/2),tr.rotationZ(np.pi)])
         elif type=="Pasto":
-            nodoCuadro.transform=tr.matmul([tr.translate(0,0.06,0),tr.rotationZ(np.pi),tr.scale(3,0.025,4.5)])
+            nodoCuadro.transform=tr.matmul([tr.translate(0,0.07,0),tr.rotationZ(np.pi),tr.scale(3,0.025,4.5)])
         else:
             nodoCuadro.transform=tr.matmul([tr.rotationZ(np.pi),tr.scale(3,0.1,4.5)])
         nodoCuadro.childs+=[gpu]
@@ -317,8 +322,6 @@ def createEnvNode(name,gpu,direction,length,type="Floor"):
                     nodoCuadro.transform=tr.matmul([tr.translate(0,0,1.5*i),tr.rotationY(np.pi/2),nodoCuadro.transform])
                 else:
                     nodoCuadro.transform=tr.matmul([tr.translate(0,0,1.5*i),nodoCuadro.transform])
-            elif direction=="D":
-                nodoCuadro.transform=tr.matmul([tr.translate(-1.5*i,0,1.5*i),tr.rotationY(np.arctan(4.5/3)),nodoCuadro.transform])
             else:
                 nodoCuadro.transform=tr.matmul([tr.translate(1.5*i,0,0),nodoCuadro.transform])
             nodoCuadro.childs+=[gpu]
