@@ -76,10 +76,10 @@ def createScene(pipeline):
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,2)
                 houseGroup1.childs += [node]
             elif t==2:
-                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,3)
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,1)
                 houseGroup1.childs += [node]
             elif t==0:
-                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,1)
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,3)
                 houseGroup1.childs += [node]
             #Y otro para el segundo piso
 
@@ -98,13 +98,13 @@ def createScene(pipeline):
         for j in range(13):
             t=j%3
             if t==1:
-                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,2)
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,3)
                 houseGroup2.childs += [node]
             elif t==2:
-                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,3)
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,1)
                 houseGroup1.childs += [node]
             elif t==0:
-                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,1)
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,2)
                 houseGroup2.childs += [node]
     
 
