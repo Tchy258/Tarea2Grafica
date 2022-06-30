@@ -71,10 +71,14 @@ def createScene(pipeline):
     for i in range(-1,1,1):
         for j in range(10):
             #Se crea un nodo para sus paredes
-            if j%2==1:
+            t=j%3
+            if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,2)
                 houseGroup1.childs += [node]
-            else:
+            elif t==2:
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,3)
+                houseGroup1.childs += [node]
+            elif t==0:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,1)
                 houseGroup1.childs += [node]
             #Y otro para el segundo piso
@@ -92,10 +96,14 @@ def createScene(pipeline):
 
     for i in range(3,5):
         for j in range(13):
-            if j%2==1:
+            t=j%3
+            if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,2)
                 houseGroup2.childs += [node]
-            else:
+            elif t==2:
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,3)
+                houseGroup1.childs += [node]
+            elif t==0:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,1)
                 houseGroup2.childs += [node]
     
@@ -111,10 +119,14 @@ def createScene(pipeline):
 
     for i in range(6,8):
         for j in range(13):
-            if j%2==1:
+            t=j%3
+            if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,2)
                 houseGroup3.childs += [node]
-            else:
+            elif t==2:
+                node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,3)
+                houseGroup1.childs += [node]
+            elif t==0:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,1)
                 houseGroup3.childs += [node]
     
@@ -228,7 +240,7 @@ def setupRoof2(pipeline,imgName):
     return gpuRoof
 
 
-def createHouseNode(name,gpuList,posX,posZ,type):
+def createHouseNode(name,gpuList,posX,posZ,t):
     nodoCasa = sg.SceneGraphNode(name)
     nodoCasa.transform=tr.translate(posX,0.0965,posZ)
 
@@ -238,9 +250,11 @@ def createHouseNode(name,gpuList,posX,posZ,type):
     nodoParedes.transform=tr.matmul([tr.translate(0,0.2,0),tr.scale(0.5,0.5,1)])
     nodoCasa.childs+=[nodoParedes]
     roof=gpuList[1]
+    roof2=gpuList[4]
     nodoTecho=sg.SceneGraphNode(name + " roof")
     nodoTecho.childs+=[roof]
-    nodoTecho.transform=tr.matmul([tr.translate(0,0.65,0),tr.scale(0.75,0.45,1.3)])
+    if t==1:
+        nodoTecho.transform=tr.matmul([tr.translate(0,0.65,0),tr.scale(0.75,0.45,1.3)])
     nodoCasa.childs+=[nodoTecho]
     door=gpuList[2]
     nodoPuerta=sg.SceneGraphNode(name + " door")
@@ -268,13 +282,11 @@ def createHouseNode(name,gpuList,posX,posZ,type):
     nodoVentana3.transform=tr.matmul([tr.translate(0,0.25,0.49),tr.scale(0.33,0.22,0.04)])
     nodoCasa.childs+=[nodoVentana3]
 
-    if type==2:
+    if t==2:
         nodoSegundoPiso=sg.SceneGraphNode(name + " second floor")
         nodoSegundoPiso.childs+=[wall]
         nodoSegundoPiso.transform=tr.matmul([tr.translate(0,0.7005,0),tr.scale(0.5,0.5,0.8)])
         nodoCasa.childs+=[nodoSegundoPiso]
-        roof2=gpuList[4]
-        nodoTecho=sg.findNode(nodoCasa,name + " roof")
         nodoTecho.transform=tr.matmul([tr.translate(0,1.09,0),tr.scale(0.75,0.45,1)])
         nodoTecho2=sg.SceneGraphNode(name + " second roof")
         nodoTecho2.childs+=[roof2]
@@ -291,6 +303,24 @@ def createHouseNode(name,gpuList,posX,posZ,type):
         nodoVentana5=sg.SceneGraphNode(name + " window5")
         nodoVentana5.childs+=[window]
         nodoVentana5.transform=tr.matmul([tr.translate(-0.25,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
+        nodoCasa.childs+=[nodoVentana5]
+    elif t==3:
+        nodoParedes.transform=tr.matmul([tr.translate(-0.15,0.2,0),tr.scale(0.8,0.5,1)])
+        nodoSegundoPiso=sg.SceneGraphNode(name + " second floor")
+        nodoSegundoPiso.childs+=[wall]
+        nodoSegundoPiso.transform=tr.matmul([tr.translate(-0.325,0.65,0),tr.scale(0.45,0.4,1)])
+        nodoCasa.childs+=[nodoSegundoPiso]
+        nodoTecho.transform=tr.matmul([tr.translate(-0.35,1.09,0),tr.scale(0.75,0.45,1.2)])
+        nodoVentana1.transform=tr.matmul([tr.translate(-0.55,0.25,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
+        nodoVentana2.transform=tr.matmul([tr.translate(-0.15,0.25,-0.49),tr.scale(0.33,0.22,0.04)])
+        nodoVentana3.transform=tr.matmul([tr.translate(-0.15,0.25,0.49),tr.scale(0.33,0.22,0.04)])
+        nodoVentana4=sg.SceneGraphNode(name + " window4")
+        nodoVentana4.childs+=[window]
+        nodoVentana4.transform=tr.matmul([tr.translate(-0.1,0.63,0),tr.rotationY(-np.pi/2),tr.scale(0.66,0.35,0.04)])
+        nodoCasa.childs+=[nodoVentana4]
+        nodoVentana5=sg.SceneGraphNode(name + " window5")
+        nodoVentana5.childs+=[window]
+        nodoVentana5.transform=tr.matmul([tr.translate(-0.55,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoCasa.childs+=[nodoVentana5]
     if int((posX/-1.5))%2==0:
         if posX>=-6 and posX<=-1:
