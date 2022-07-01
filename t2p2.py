@@ -5,10 +5,10 @@ from grafica.gpu_shape import GPUShape
 import grafica.basic_shapes as bs
 import grafica.easy_shaders as es
 import numpy as np
-import transformations as tr
+import grafica.transformations as tr
 import grafica.scene_graph as sg
-import grafica.constants
-from controller import Controller
+import grafica.constants as constants
+from grafica.controller import Controller
 
 #Objeto para controlar la camara
 controller=Controller()
