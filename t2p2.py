@@ -1,13 +1,13 @@
 import glfw
 from OpenGL.GL import *
-from setup import setProjection, setView, createScene
-from gpu_shape import GPUShape
-import basic_shapes as bs
-import easy_shaders as es
+from grafica.setup import setProjection, setView, createScene
+from grafica.gpu_shape import GPUShape
+import grafica.basic_shapes as bs
+import grafica.easy_shaders as es
 import numpy as np
 import transformations as tr
-import scene_graph as sg
-import constants
+import grafica.scene_graph as sg
+import grafica.constants
 from controller import Controller
 
 #Objeto para controlar la camara
