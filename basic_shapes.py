@@ -12,8 +12,90 @@ class Shape:
         self.vertices = vertexData
         self.indices = indexData
 
-#Funcion para crear un cubo con texturas
-def createTextureCube():
+#Funcion auxiliar para calcular la normal de una superficie
+def surfaceNormal(v1,v2,v3):
+    #Vectores que determinan la superficie según los puntos del triángulo cuya normal se está calculando
+    u=v2-v1 
+    v=v3-v1
+    normal=np.cross(u,v)
+    normal/=np.linalg.norm(normal)
+    #Si el producto punto entre la normal y cualquiera de los puntos es negativo
+    if np.dot(normal,v1)<0:
+        #Entonces esta normal apunta hacia "adentro", por lo que se busca la normal opuesta
+        normal=-normal
+    return normal
+
+#Funcion auxiliar para calcular la normal de un vértice
+def vertexNormal(normalArray):
+    #La normal de un vértice se calcula como el promedio de las normales de las superficies a las que
+    #el vértice pertenece
+    average=np.array([0.,0.,0.])
+    for i in range(len(normalArray)):
+        average+=normalArray[i]
+    average/=len(normalArray)
+    return average.tolist()
+
+#Funcion auxiliar para extraer los vertices de una lista de vertices de una funcion que retorna un shape
+def extractVertices(shapeVertices):
+    vertices=[]
+    for i in range(0,len(shapeVertices),5):
+        vertices+=[shapeVertices[i:i+3]]
+    return vertices
+
+#Funcion que dado una lista de listas que representan vertices, y sus indices, calcula las normales de cada vertice
+def calculatePerVertexNormal(vertexList,indices):
+    listOfVertexNormals=[]
+    #Por cada vertice en la lista de vertices
+    for i in range(len(vertexList)):
+        surfaceNormals=[]
+        #Revisar la lista de indices
+        for j in range(len(indices)):
+            #Si el vertice participa en la formación de este triángulo
+            if indices[j]==i:
+                #Ver cual vertice del triángulo es
+                vertexPosition=j%3
+                #Si es el inferior izquierdo
+                if vertexPosition==0:
+                    normal=surfaceNormal(np.array(vertexList[indices[j]]), \
+                                                np.array(vertexList[indices[j+1]]), \
+                                                np.array(vertexList[indices[j+2]]))
+                #Inferior derecho
+                elif vertexPosition==1:
+                    normal=surfaceNormal(np.array(vertexList[indices[j-1]]), \
+                                                np.array(vertexList[indices[j]]), \
+                                                np.array(vertexList[indices[j+1]]))
+                #Superior
+                elif vertexPosition==2:
+                    normal=surfaceNormal(np.array(vertexList[indices[j-2]]), \
+                                                np.array(vertexList[indices[j-1]]), \
+                                                np.array(vertexList[indices[j]]))
+                #Luego se añade la normal calculada a la lista de normales de superficie para este vertice
+                surfaceNormals+=[normal]
+        #Una vez recorridos todos los indices, se calcula la normal del vertice y se agrega a la lista de normales
+        normalAvg=vertexNormal(surfaceNormals)
+        for j in range(3):
+            listOfVertexNormals.append(normalAvg[j])
+    return listOfVertexNormals
+
+
+#Funcion auxiliar para insertar normales de vertices dada una lista de ellos proveniente de un shape y sus indices
+def insertVertexNormals(vertices,indices):
+    vertexList=extractVertices(vertices)
+    normals=calculatePerVertexNormal(vertexList,indices)
+    vertexArrayIndex=5
+    normalArrayIndex=0
+    while vertexArrayIndex<len(vertices):
+        for j in range(normalArrayIndex,normalArrayIndex+3):
+            vertices.insert(vertexArrayIndex+j%3,normals[j])
+        normalArrayIndex+=3
+        vertexArrayIndex+=8
+    for j in range(len(normals)-3,len(normals)):
+        vertices.append(normals[j])
+
+
+
+#Funcion para crear un cubo con texturas y normales
+def createTextureCubeWithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -65,9 +147,12 @@ def createTextureCube():
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
 
+    #Insercion de normales
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
-def createTextureTrapezoid():
+def createTextureTrapezoidWithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -111,9 +196,11 @@ def createTextureTrapezoid():
         11,12,13,  # X-
         14,15,16,16,17,14]  # Y-
 
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
-def createTexturePyramid():
+def createTexturePyramidWithNormals():
 
     vertices = [
         # Base
@@ -138,9 +225,11 @@ def createTexturePyramid():
         3, 4 ,0
     ]
 
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
-def createGrass():
+def createGrassWithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -182,12 +271,14 @@ def createGrass():
         8, 9, 10, 10, 11, 8,  # X+
         12, 13, 14,  # Y+
         15, 16, 17]  # Y-
+    
+    insertVertexNormals(vertices,indices)
 
     return Shape(vertices, indices)
 
 #Función para crear un cilindro texturizado de suavidad N, en particular se uso para las
 #chapas de las puertas
-def createTextureCilinder(N,D):
+def createTextureCilinderWithNormals(N,D):
 
     H=1
     vertexData=[0.,0.,-H, 1/2,1/2]
@@ -261,11 +352,14 @@ def createTextureCilinder(N,D):
         indexData+= [
             i+1,i+2,i
         ]
+
+    insertVertexNormals(vertexData,indexData)
+
     return Shape(vertexData, indexData)
 
 #Funcion para crear la puerta1 con las coordenadas de textura correctas
 #Es igual a la del cubo pero con distintas coordenadas
-def createDoor1():
+def createDoor1WithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -317,10 +411,12 @@ def createDoor1():
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
 
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
 #Lo mismo para la puerta 2
-def createDoor2():
+def createDoor2WithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -372,10 +468,12 @@ def createDoor2():
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
 
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
 #Funcion para crear la ventana1 con las coordenadas de textura correctas
-def createWindow1():
+def createWindow1WithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -424,10 +522,12 @@ def createWindow1():
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
 
+    insertVertexNormals(vertices,indices)
+
     return Shape(vertices, indices)
 
 #Funcion para crear la ventana2 con las coordenadas de textura correctas
-def createWindow2():
+def createWindow2WithNormals():
 
     # Defining locations and texture coordinates for each vertex of the shape
     vertices = [
@@ -475,5 +575,7 @@ def createWindow2():
         15, 14, 13, 13, 12, 15,  # X-
         19, 18, 17, 17, 16, 19,  # Y+
         20, 21, 22, 22, 23, 20]  # Y-
+
+    insertVertexNormals(vertices,indices)
 
     return Shape(vertices, indices)
