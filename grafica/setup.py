@@ -1,33 +1,108 @@
 #Este archivo es donde se crean la mayoría de objetos
+from os import system
 from pyparsing import traceParseAction
 from setuptools import setup
-import transformations as tr
+import grafica.transformations as tr
 from OpenGL.GL import *
 import numpy as np
-import scene_graph as sg
-import basic_shapes as bs
-import easy_shaders as es
-from assets_path import getAssetPath
+import grafica.scene_graph as sg
+import grafica.basic_shapes as bs
+import grafica.easy_shaders as es
+from grafica.controller import Controller,Spotlight
+from grafica.assets_path import getAssetPath
 
-#La función setProjection cambia la proyección en ambos shaders (textura y camara)
-#de ortografica a perspectiva según corresponda
-def setProjection(controller,pipeline, mvpPipeline, width, height):
+
+
+#La función setProjection dibuja lo que efectivamente se ve en pantalla, lo que ve la cámara
+#y como se comportan las luces
+def setProjection(controller,lightPipeline, texPipeline, width, height,spotlightsPool,theta):
     #Se elijieron 40 y 22.5 para mantener la relación de aspecto 16:9
     if controller.IsOrtho:
         projection = tr.ortho(-40, 40, -22.5,22.5 , 0.1, 100)
     else:
         projection = tr.perspective(45, float(width)/float(height), 0.1, 300)
+    if not controller.flashlightOn:
+        spotlightsPool['spot2'].ambient = np.array([0, 0, 0])
+        spotlightsPool['spot2'].diffuse = np.array([0., 0., 0.])
+        spotlightsPool['spot2'].specular = np.array([0., 0., 0.])
+    else:
+        spotlightsPool['spot2'].ambient = np.array([0, 0, 0])
+        spotlightsPool['spot2'].diffuse = np.array([1.0, 1.0, 1.0])
+        spotlightsPool['spot2'].specular = np.array([1.0, 1.0, 1.0])
 
-    glUseProgram(mvpPipeline.shaderProgram)
-    glUniformMatrix4fv(glGetUniformLocation(
-        mvpPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
+    #TAREA4: Como tenemos 2 shaders con múltiples luces, tenemos que enviar toda esa información a cada shader
+    #TAREA4: Primero al shader de color
+    glUseProgram(lightPipeline.shaderProgram)
+    glUniformMatrix4fv(glGetUniformLocation(lightPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
+    
+    #TAREA4: Enviamos la información de la luz puntual y del material
+    #TAREA4: La luz puntual está desactivada por defecto (ya que su componente ambiente es 0.0, 0.0, 0.0), pero pueden usarla
+    # para añadir más realismo a la escena
+    x=-6*np.cos(theta)
+    y=30
+    z=7*np.sin(theta)
+    ambient=0.3+0.3*np.cos(theta)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].ambient"), ambient, ambient, ambient)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].diffuse"), 0.0, 0.0, 0.0)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].specular"), 0.0, 0.0, 0.0)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].constant"), 0.1)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].linear"), 0.1)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].quadratic"), 0.01)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].position"),x,y,z )
 
-    glUseProgram(pipeline.shaderProgram)
-    glUniformMatrix4fv(glGetUniformLocation(
-        pipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.ambient"), 0.2, 0.2, 0.2)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.diffuse"), 0.9, 0.9, 0.9)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.specular"), 1.0, 1.0, 1.0)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "material.shininess"), 32)
+
+    #TAREA4: Aprovechamos que las luces spotlight están almacenadas en el diccionario para mandarlas al shader
+    for i, (k,v) in enumerate(spotlightsPool.items()):
+        baseString = "spotLights[" + str(i) + "]."
+        glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "ambient"), 1, v.ambient)
+        glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "diffuse"), 1, v.diffuse)
+        glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "specular"), 1, v.specular)
+        glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "constant"), v.constant)
+        glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "linear"), v.linear)
+        glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "quadratic"), v.quadratic)
+        glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "position"), 1, v.position)
+        glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "direction"), 1, v.direction)
+        glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "cutOff"), v.cutOff)
+        glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "outerCutOff"), v.outerCutOff)
+
+    #TAREA4: Ahora repetimos todo el proceso para el shader de texturas con mútiples luces
+    glUseProgram(texPipeline.shaderProgram)
+    glUniformMatrix4fv(glGetUniformLocation(texPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
+    
+
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].ambient"), 0.4, 0.4, 0.4)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].diffuse"), 0.0, 0.0, 0.0)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].specular"), 0.0, 0.0, 0.0)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].constant"), 0.1)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].linear"), 0.1)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].quadratic"), 0.01)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].position"), -7.3, 5, 10.855)
+
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "material.ambient"), 0.2, 0.2, 0.2)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "material.diffuse"), 0.9, 0.9, 0.9)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "material.specular"), 1.0, 1.0, 1.0)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "material.shininess"), 32)
+
+    for i, (k,v) in enumerate(spotlightsPool.items()):
+        baseString = "spotLights[" + str(i) + "]."
+        glUniform3fv(glGetUniformLocation(texPipeline.shaderProgram, baseString + "ambient"), 1, v.ambient)
+        glUniform3fv(glGetUniformLocation(texPipeline.shaderProgram, baseString + "diffuse"), 1, v.diffuse)
+        glUniform3fv(glGetUniformLocation(texPipeline.shaderProgram, baseString + "specular"), 1, v.specular)
+        glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, baseString + "constant"), v.constant)
+        glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, baseString + "linear"), v.linear)
+        glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, baseString + "quadratic"), v.quadratic)
+        glUniform3fv(glGetUniformLocation(texPipeline.shaderProgram, baseString + "position"), 1, v.position)
+        glUniform3fv(glGetUniformLocation(texPipeline.shaderProgram, baseString + "direction"), 1, v.direction)
+        glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, baseString + "cutOff"), v.cutOff)
+        glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, baseString + "outerCutOff"), v.outerCutOff)
+
 
 #Función que cambia la vista según se esta en el modo ortogfrafico o en perspectiva
-def setView(pipeline, mvpPipeline,controller):
+def setView(lightPipeline,texPipeline,controller):
     if controller.IsOrtho:
         controller.view = tr.lookAt(
             np.array([0,10.,0]),
@@ -42,13 +117,93 @@ def setView(pipeline, mvpPipeline,controller):
             np.array([0., 1., 0.])
         )
 
-    glUseProgram(mvpPipeline.shaderProgram)
-    glUniformMatrix4fv(glGetUniformLocation(
-        mvpPipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
+    Xesf = np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle) #coordenada X esferica
+    Zesf = np.sin(controller.cameraPhiAngle)*np.sin(controller.cameraThetaAngle) #coordenada Y esferica
+    Yesf = np.cos(controller.cameraThetaAngle)
 
-    glUseProgram(pipeline.shaderProgram)
-    glUniformMatrix4fv(glGetUniformLocation(
-        pipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
+    viewPos = np.array([controller.camPos[0]-Xesf,controller.camPos[1]-Yesf,controller.camPos[2]-Zesf])
+
+    glUseProgram(texPipeline.shaderProgram)
+    glUniformMatrix4fv(glGetUniformLocation(texPipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "viewPosition"), viewPos[0], viewPos[1], viewPos[2])
+
+    glUseProgram(lightPipeline.shaderProgram)
+    glUniformMatrix4fv(glGetUniformLocation(lightPipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
+
+
+#Funciones tomadas del archivo "ex_obj_reader.py" del github del curso para leer archivos .obj
+#Esta función corrobora que el obj esté bien formateado
+def readFaceVertex(faceDescription):
+
+    aux = faceDescription.split('/')
+
+    assert len(aux[0]), "Vertex index has not been defined."
+
+    faceVertex = [int(aux[0]), None, None]
+
+    assert len(aux) == 3, "Only faces where its vertices require 3 indices are defined."
+
+    if len(aux[1]) != 0:
+        faceVertex[1] = int(aux[1])
+
+    if len(aux[2]) != 0:
+        faceVertex[2] = int(aux[2])
+
+    return faceVertex
+
+
+#Está función lee el archivo obj
+def readOBJ(filename, color):
+
+    vertices = []
+    normals = []
+    textCoords= []
+    faces = []
+
+    with open(filename, 'r') as file:
+        for line in file.readlines():
+            aux = line.strip().split(' ')
+            
+            if aux[0] == 'v':
+                vertices += [[float(coord) for coord in aux[1:]]]
+
+            elif aux[0] == 'vn':
+                normals += [[float(coord) for coord in aux[1:]]]
+
+            elif aux[0] == 'vt':
+                assert len(aux[1:]) == 2, "Texture coordinates with different than 2 dimensions are not supported"
+                textCoords += [[float(coord) for coord in aux[1:]]]
+
+            elif aux[0] == 'f':
+                N = len(aux)                
+                faces += [[readFaceVertex(faceVertex) for faceVertex in aux[1:4]]]
+                for i in range(3, N-1):
+                    faces += [[readFaceVertex(faceVertex) for faceVertex in [aux[i], aux[i+1], aux[1]]]]
+
+        vertexData = []
+        indices = []
+        index = 0
+
+        # Per previous construction, each face is a triangle
+        for face in faces:
+
+            # Checking each of the triangle vertices
+            for i in range(0,3):
+                vertex = vertices[face[i][0]-1]
+                normal = normals[face[i][2]-1]
+
+                vertexData += [
+                    vertex[0], vertex[1], vertex[2],
+                    color[0], color[1], color[2],
+                    normal[0], normal[1], normal[2]
+                ]
+
+            # Connecting the 3 vertices to create a triangle
+            indices += [index, index + 1, index + 2]
+            index += 3        
+
+        return bs.Shape(vertexData, indices)
+
 
 #Función que crea todo el grafo de escena
 def createScene(pipeline):
@@ -196,28 +351,35 @@ def createScene(pipeline):
     diagonalRoads.childs+=[stretch]
     roads.childs+=[diagonalRoads]
     environment.childs+=[roads]
-    
 
     return scene
+
+def createSatellites(pipeline):
+    gpuSun=setupOBJ(pipeline,"untitled2.obj",(1.,1.,51/255.))
+    gpuMoon=setupOBJ(pipeline,"untitled.obj",(1,1,1))
+    satellites=sg.SceneGraphNode("Satellites")
+    sun=createSatelliteNode("Sun",gpuSun,"Sun")
+    moon=createSatelliteNode("Moon",gpuMoon,"Moon")
+    satellites.childs+=[sun]
+    satellites.childs+=[moon]
+    return satellites
 
 def setupGpu(pipeline,imgName,param=0):
     fullName=imgName.split('.')
     name=fullName[0]
     name=name[:-1] if name[-1].isnumeric() else name
     if (name=="ladrillo" or name=="piso" or name=="pista") and param==0:
-        shape = bs.createTextureCube()
+        shape = bs.createTextureCubeWithNormals()
     elif name=="tejado" or param==3:
-        shape = bs.createTexturePyramid()
+        shape = bs.createTexturePyramidWithNormals()
     elif name=="pasto" or param==2:
-        shape = bs.createGrass()
+        shape = bs.createGrassWithNormals()
     elif name=="ventana":
-        shape= bs.createWindow2() if imgName=="ventana2.png" else bs.createWindow1()
+        shape= bs.createWindow2WithNormals() if imgName=="ventana2.png" else bs.createWindow1WithNormals()
     elif name=="puerta":
-        shape = bs.createDoor1() if imgName=="puerta1.jpg" else bs.createDoor2()
-    elif name=="pistacurva":
-        shape=bs.createTextureCilinder(18,18)
+        shape = bs.createDoor1WithNormals() if imgName=="puerta1.jpg" else bs.createDoor2WithNormals()
     else:
-        shape= bs.createTextureCilinder(15,15)
+        shape= bs.createTextureCilinderWithNormals(15,15)
     gpu = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpu)
     gpu.fillBuffers(
@@ -227,9 +389,17 @@ def setupGpu(pipeline,imgName,param=0):
 
     return gpu
 
+def setupOBJ(pipeline,filename,color):
+    shape=readOBJ(getAssetPath(filename),color)
+    gpu = es.GPUShape().initBuffers()
+    pipeline.setupVAO(gpu)
+    gpu.fillBuffers(
+        shape.vertices, shape.indices)
+    return gpu
+    
 
 def setupRoof2(pipeline,imgName):
-    shapeRoof = bs.createTextureTrapezoid()
+    shapeRoof = bs.createTextureTrapezoidWithNormals()
     gpuRoof = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpuRoof)
     gpuRoof.fillBuffers(
@@ -310,7 +480,7 @@ def createHouseNode(name,gpuList,posX,posZ,t):
         nodoSegundoPiso.childs+=[wall]
         nodoSegundoPiso.transform=tr.matmul([tr.translate(-0.325,0.65,0),tr.scale(0.45,0.4,1)])
         nodoCasa.childs+=[nodoSegundoPiso]
-        nodoTecho.transform=tr.matmul([tr.translate(-0.35,1.09,0),tr.scale(0.75,0.45,1.2)])
+        nodoTecho.transform=tr.matmul([tr.translate(-0.35,1.05,0),tr.scale(0.75,0.45,1.2)])
         nodoVentana1.transform=tr.matmul([tr.translate(-0.55,0.25,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoVentana2.transform=tr.matmul([tr.translate(-0.15,0.25,-0.49),tr.scale(0.33,0.22,0.04)])
         nodoVentana3.transform=tr.matmul([tr.translate(-0.15,0.25,0.49),tr.scale(0.33,0.22,0.04)])
@@ -357,3 +527,11 @@ def createEnvNode(name,gpu,direction,length,type="Floor"):
             nodoCuadro.childs+=[gpu]
             nodoPiso.childs+=[nodoCuadro]
     return nodoPiso
+
+def createSatelliteNode(name,gpu,type):
+    nodoSatelite=sg.SceneGraphNode(name)
+    nodoSatelite.childs+=[gpu]
+    nodoSatelite.transform=tr.matmul([tr.translate(-6,30,7),tr.scale(0.02,0.025,0.02)])
+    if type=="Moon":
+        nodoSatelite.transform=tr.matmul([tr.translate(-6,-30,7),tr.scale(0.02,0.02,0.02)])
+    return nodoSatelite
