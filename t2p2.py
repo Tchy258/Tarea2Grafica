@@ -14,8 +14,6 @@ import math
 
 #Objeto para controlar la camara
 controller=Controller()
-center=np.array(constants.SCENE_CENTER)
-sunTheta=np.pi/2
 spotlightsPool = dict()
 
 def setLights():
