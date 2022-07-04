@@ -355,8 +355,8 @@ def createScene(pipeline):
     return scene
 
 def createSatellites(pipeline):
-    gpuSun=setupOBJ(pipeline,"untitled2.obj",(1.,1.,51/255.))
-    gpuMoon=setupOBJ(pipeline,"untitled.obj",(1,1,1))
+    gpuSun=setupOBJ(pipeline,"sun.obj",(1.,1.,51/255.))
+    gpuMoon=setupOBJ(pipeline,"moon.obj",(1,1,1))
     satellites=sg.SceneGraphNode("Satellites")
     sun=createSatelliteNode("Sun",gpuSun,"Sun")
     moon=createSatelliteNode("Moon",gpuMoon,"Moon")
