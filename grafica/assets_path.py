@@ -14,5 +14,8 @@ def getAssetPath(filename):
     thisFolderPath = os.path.dirname(thisFilePath)
     parentFolderPath = os.path.dirname(thisFolderPath)
     assetsDirectory = os.path.join(parentFolderPath, "assets")
-    requestedPath = os.path.join(assetsDirectory, filename)
+    if filename[-3:]=="jpg" or filename[-3:]=="png" or filename[-3:]=="obj":
+        requestedPath = os.path.join(assetsDirectory, filename)
+    else:
+        requestedPath=os.path.join(thisFolderPath,filename)
     return requestedPath
