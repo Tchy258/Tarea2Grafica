@@ -2,8 +2,8 @@
 from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 from PIL import Image
-from gpu_shape import GPUShape
-import constants
+from grafica.gpu_shape import GPUShape
+import grafica.constants as constants
 import numpy as np
 
 
