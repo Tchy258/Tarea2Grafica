@@ -3,12 +3,12 @@
 
 from OpenGL.GL import *
 import OpenGL.GL.shaders
-from gpu_shape import GPUShape
+from grafica.gpu_shape import GPUShape
 
 import sys
 import os.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from assets_path import getAssetPath
+from grafica.assets_path import getAssetPath
 
 class SimpleFlatShaderProgram():
 
