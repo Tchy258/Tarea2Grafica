@@ -2,7 +2,7 @@
 
 import numpy as np
 from OpenGL.GL import *
-import constants
+import grafica.constants as constants
 
 SIZE_IN_BYTES = constants.SIZE_IN_BYTES
 
@@ -18,9 +18,10 @@ def surfaceNormal(v1,v2,v3):
     u=v2-v1 
     v=v3-v1
     normal=np.cross(u,v)
-    normal/=np.linalg.norm(normal)
+    if np.linalg.norm(normal)!=0:
+        normal/=np.linalg.norm(normal)
     #Si el producto punto entre la normal y cualquiera de los puntos es negativo
-    if np.dot(normal,v1)<0:
+    if np.dot(normal,v2)<0 or np.dot(normal,v1)<0 or np.dot(normal,v3)<0:
         #Entonces esta normal apunta hacia "adentro", por lo que se busca la normal opuesta
         normal=-normal
     return normal
@@ -32,7 +33,8 @@ def vertexNormal(normalArray):
     average=np.array([0.,0.,0.])
     for i in range(len(normalArray)):
         average+=normalArray[i]
-    average/=len(normalArray)
+    if len(normalArray)!=0:
+        average/=len(normalArray)
     return average.tolist()
 
 #Funcion auxiliar para extraer los vertices de una lista de vertices de una funcion que retorna un shape
@@ -56,21 +58,22 @@ def calculatePerVertexNormal(vertexList,indices):
                 vertexPosition=j%3
                 #Si es el inferior izquierdo
                 if vertexPosition==0:
-                    normal=surfaceNormal(np.array(vertexList[indices[j]]), \
-                                                np.array(vertexList[indices[j+1]]), \
-                                                np.array(vertexList[indices[j+2]]))
+                    normal=surfaceNormal(np.array(vertexList[indices[j]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j+1]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j+2]%len(vertexList)]))
                 #Inferior derecho
                 elif vertexPosition==1:
-                    normal=surfaceNormal(np.array(vertexList[indices[j-1]]), \
-                                                np.array(vertexList[indices[j]]), \
-                                                np.array(vertexList[indices[j+1]]))
+                    normal=surfaceNormal(np.array(vertexList[indices[j-1]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j+1]%len(vertexList)]))
                 #Superior
                 elif vertexPosition==2:
-                    normal=surfaceNormal(np.array(vertexList[indices[j-2]]), \
-                                                np.array(vertexList[indices[j-1]]), \
-                                                np.array(vertexList[indices[j]]))
+                    normal=surfaceNormal(np.array(vertexList[indices[j-2]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j-1]%len(vertexList)]), \
+                                                np.array(vertexList[indices[j]%len(vertexList)]))
                 #Luego se añade la normal calculada a la lista de normales de superficie para este vertice
-                surfaceNormals+=[normal]
+                if np.linalg.norm(normal)!=0:
+                    surfaceNormals+=[normal]
         #Una vez recorridos todos los indices, se calcula la normal del vertice y se agrega a la lista de normales
         normalAvg=vertexNormal(surfaceNormals)
         for j in range(3):
@@ -206,26 +209,30 @@ def createTexturePyramidWithNormals():
         # Base
         -0.5, -0.5, -0.5, 0, 1,
         0.5, -0.5, -0.5, 1, 1,
+        0.5, -0.5,  0.5, 1, 0,
+        -0.5, -0.5,  0.5, 0, 0,
+
+        # Caras laterales
+        -0.5, -0.5, -0.5, 0, 1,
+        0.5, -0.5, -0.5, 1, 1,
         0.5, -0.5,  0.5, 0, 1,
         -0.5, -0.5,  0.5, 1, 1,
 
         # Vertice superior
-        0.0,  0.5, 0.0, 0.5, 0,
-
-        # Vertices auxiliares para mapear bien texturas
-        0.5, -0.5,  0.5, 1, 0,
-        -0.5, -0.5,  0.5, 0, 0
+        0.0,  0.5, 0.0, 0.5, 0
     ]
 
     indices = [
-        0, 1, 5, 5, 6, 0,  # Base
-        0, 4, 1, #Caras laterales
-        1, 4, 2, 
-        2, 4, 3,
-        3, 4 ,0
+        0, 1, 2, 2, 3, 0,  # Base
+        4, 5, 8, #Caras laterales
+        5, 6, 8, 
+        6, 7, 8,
+        7, 4 ,8
     ]
 
+
     insertVertexNormals(vertices,indices)
+    
 
     return Shape(vertices, indices)
 
