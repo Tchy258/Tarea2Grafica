@@ -1,3 +1,4 @@
-Tarea 2 Opcion 2
-No tuve tiempo para hacer las curvas, para moverse se usa WASD, la camara se mueve con el mouse, más uqe ponerle chapas a las
-puertas no tuve tiempo para agregar algún detalle creativo
+Creditos sol:
+"Low poly sun" (https://skfb.ly/6AnBn) by herrwoland is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+Creditos luna:
+https://www.cgtrader.com/free-3d-models/space/other/low-poly-moon
