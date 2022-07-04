@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 import numpy as np
-import constants
+import grafica.constants as constants
 
 SIZE_IN_BYTES = constants.SIZE_IN_BYTES
 
