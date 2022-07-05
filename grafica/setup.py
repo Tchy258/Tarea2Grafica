@@ -34,10 +34,21 @@ def setProjection(controller,lightPipeline, texPipeline, width, height,spotlight
 
     #Dependiendo de la hora
     for i in range(2,40):
+        #Se prenden o apagan las luces
         if hora>18 or hora<7:
             spotlightsPool['spot'+str(i)].ambient = np.array([0.0, 0.0, 0.0])
             spotlightsPool['spot'+str(i)].diffuse = np.array([0.6, 0.6, 0.6])
             spotlightsPool['spot'+str(i)].specular = np.array([0.6, 0.6, 0.6])
+        else:
+            spotlightsPool['spot'+str(i)].ambient = np.array([0, 0, 0])
+            spotlightsPool['spot'+str(i)].diffuse = np.array([0., 0., 0.])
+            spotlightsPool['spot'+str(i)].specular = np.array([0., 0., 0.])
+    #Las del auto son más intensas
+    for i in range(40,42):
+        if hora>18 or hora<7:
+            spotlightsPool['spot'+str(i)].ambient = np.array([0.0, 0.0, 0.0])
+            spotlightsPool['spot'+str(i)].diffuse = np.array([1., 1., 1.])
+            spotlightsPool['spot'+str(i)].specular = np.array([1., 1., 1.])
         else:
             spotlightsPool['spot'+str(i)].ambient = np.array([0, 0, 0])
             spotlightsPool['spot'+str(i)].diffuse = np.array([0., 0., 0.])
@@ -49,16 +60,19 @@ def setProjection(controller,lightPipeline, texPipeline, width, height,spotlight
     glUseProgram(lightPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(lightPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
     
-    #Esta luz puntual representa al sol y la luna
+    #Estas luces puntuales representam al sol y la luna
     #El día y la noche se distinguen según el ángulo de rotación respecto al centro de la escena que tengan
     xSol=-6*np.cos(theta)
     ySol=30
     zSol=7*np.sin(theta)
+    #La luz del sol es el máximo entre 0.7 más un factor que depende de su ángulo respecto al origen o 0
     ambientSol=max(0.7+0.5*np.cos(theta),0)
     xLuna=xSol
     yLuna=-ySol
     zLuna=zSol
+    #Como la luna y el sol son opuestos, si el coseno es negativo para el sol, será positivo para la luna
     ambientLuna=max(0.001-0.05*np.cos(theta),0)
+    #Actualización de parametros de las luces en el shader
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].ambient"), ambientSol, ambientSol, ambientSol)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].diffuse"), 0.0, 0.0, 0.0)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].specular"), 0.0, 0.0, 0.0)
@@ -249,17 +263,17 @@ def createScene(pipeline):
 
     #Nodo hijo del nodo houses que tiene un grupo de casas
     houseGroup1= sg.SceneGraphNode('houseGroup1')
-    #houseGroup.transform = tr.translate(0.5,0,0)
     houses.childs+=[houseGroup1]
 
-    
+    #Se crea una lisa de gpuShape para construir la casa
     gpuList=[setupGpu(pipeline,"ladrillo1.jpg"),setupGpu(pipeline,"tejado1.jpg"), \
             setupGpu(pipeline,"puerta1.jpg"),setupGpu(pipeline,"ventana1.png"), \
             setupRoof2(pipeline,"tejado1.jpg"),setupGpu(pipeline,"chapa.png") ]
+
     #Imaginando el grupo de casas como un tablero de ajedrez equiespaciado
     for i in range(-1,1,1):
         for j in range(10):
-            #Se crea un nodo para sus paredes
+            #Se crean 20 casas de 3 tipos entre las coordenadas -1.5 y 0 del eje x
             t=j%3
             if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,2)
@@ -270,9 +284,6 @@ def createScene(pipeline):
             elif t==0:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,3)
                 houseGroup1.childs += [node]
-            #Y otro para el segundo piso
-
-    
 
     #Otro nodo para agrupar casas
     houseGroup2= sg.SceneGraphNode('houseGroup2')
@@ -377,16 +388,17 @@ def createScene(pipeline):
     curve=createEnvNode("curve1",gpuRoad2,"C",1,"Road")
     curve.transform=tr.matmul([tr.translate(1.5-0.135,0,14.66445),tr.shearing(0,0,-0.306,0.0055),curve.transform])
     curve2=createEnvNode("curve2",gpuRoad2,"C",1,"Road")
-    curve2.transform=tr.matmul([tr.translate(-1.91,0,19.4955),tr.scale(0.81,1,0.99),tr.rotationY(-np.pi/2),tr.rotationX(np.pi),curve2.transform])
+    curve2.transform=tr.matmul([tr.translate(-1.89,0,19.35),tr.shearing(0,0,-0.285,0.00055),tr.scale(0.81,1,1.05),tr.rotationY(-np.pi/2+np.deg2rad(20)),tr.rotationX(np.pi),curve2.transform])
     curve3=createEnvNode("curve3",gpuRoad2,"C",1,"Road")
-    curve3.transform=tr.matmul([tr.translate(-1.54,0,19.4),tr.scale(0.81,1,0.99),tr.rotationY(-np.pi/2+np.deg2rad(29)),tr.rotationX(-np.pi),curve3.transform])
+    curve3.transform=tr.matmul([tr.translate(-1.621,0,19.15),tr.rotationY(np.deg2rad(9.75)),tr.shearing(0,0,-0.37,0.0055),tr.rotationY(-np.pi/2+np.deg2rad(37)),tr.scale(1.1377,1,0.687),tr.rotationX(-np.pi),curve3.transform])
     curvedRoads.childs+=[curve3]
     curvedRoads.childs+=[curve2]
     curvedRoads.childs+=[curve]
     roads.childs+=[curvedRoads]
-    #La parte "diagonal" de la pista (el límite izquierdo de la escena visto desde arriba)
+    #La parte "diagonal" de la pista (el límite izquierdo superior de la escena visto desde arriba)
     diagonalRoads=sg.SceneGraphNode("diagonalRoads")
     stretch=createEnvNode("stretch " + str(i),gpuRoad,"H",3,"Road")
+    #La inclinación está dada por la pendiente de la hipotenusa del triángulo que contiene el pasto
     stretch.transform=tr.matmul([tr.translate(-1.12,0,18.41),tr.rotationY(np.arctan(4.5/3)),tr.scale(1.2,1,1),stretch.transform])
     diagonalRoads.childs+=[stretch]
     roads.childs+=[diagonalRoads]
@@ -406,18 +418,25 @@ def createSatellites(pipeline):
     satellites.childs+=[moon]
     return satellites
 
+#Función para crear los postes de luz
 def createLampScene(pipeline):
+    #Nodo raíz de las luces
     lamps=sg.SceneGraphNode("lamps")
+    #Nodos para el primer grupo de casas separado en 2 grupos
     lampGroup1=sg.SceneGraphNode("lampGroup1")
     lampGroup2=sg.SceneGraphNode("lampGroup2")
+    #Se crea el gpuShape usado a lo largo de toda la función
     gpuLamp=setupOBJ(pipeline,getAssetPath("lampPost.obj"),(0.5,0.5,0.5))
     for j in range(0,10,2):
         node=createLamp("lamp "+str(j),gpuLamp,0,1.5*j)
         lampGroup1.childs+=[node]
         node=createLamp("lamp "+str(j),gpuLamp,-1.5,1.5*j)
         lampGroup2.childs+=[node]
+    #Cada fila de postes debe tener una correción respecto a las casas
+    #Y además deben apuntar hacia "afuera" (a la calle)
     lampGroup1.transform=tr.translate(0.5,0,0)
     lampGroup2.transform=tr.translate(-0.5,0,0)
+    #Nodos para el segundo grupo de casas
     lampGroup3=sg.SceneGraphNode("lampGroup3")
     lampGroup4=sg.SceneGraphNode("lampGroup4")
     for j in range(0,13,2):
@@ -427,6 +446,7 @@ def createLampScene(pipeline):
         lampGroup4.childs+=[node]
     lampGroup3.transform=tr.translate(0.5,0,0)
     lampGroup4.transform=tr.translate(-0.5,0,0)
+    #Para el tercer grupo
     lampGroup5=sg.SceneGraphNode("lampGroup5")
     lampGroup6=sg.SceneGraphNode("lampGroup6")
     for i in range(6,8):
@@ -437,20 +457,27 @@ def createLampScene(pipeline):
             lampGroup6.childs+=[node]
     lampGroup5.transform=tr.translate(0.5,0,0)
     lampGroup6.transform=tr.translate(-0.5,0,0)
+    #Se añaden al nodo raíz
     lamps.childs+=[lampGroup1]
     lamps.childs+=[lampGroup2]
     lamps.childs+=[lampGroup3]
     lamps.childs+=[lampGroup4]
     lamps.childs+=[lampGroup5]
     lamps.childs+=[lampGroup6]
+    #Se desplazan todos los postes un poco respecto a las casas (para no tapar las puertas)
     lamps.transform=tr.translate(0,0,-0.65)
     return lamps
 
+
 #Función general para formar un gpuShape
 def setupGpu(pipeline,imgName,param=0):
+    #Se separa el nombre del archivo antes y después del punto, esto para
+    #descartar la extensión al determinar que textura es y hacer el shape apropiado
     fullName=imgName.split('.')
     name=fullName[0]
+    #Si tiene un numero al final, descartarlo (mantener todo menos el último caracter), si no, no hacer nada
     name=name[:-1] if name[-1].isnumeric() else name
+    #Dependiendo de textura se entregó, se crea el shape que corresponde
     if (name=="ladrillo" or name=="piso" or name=="pista") and param==0:
         shape = bs.createTextureCubeWithNormals()
     elif name=="tejado" or param==3:
@@ -463,6 +490,7 @@ def setupGpu(pipeline,imgName,param=0):
         shape = bs.createDoor1WithNormals() if imgName=="puerta1.jpg" else bs.createDoor2WithNormals()
     else:
         shape= bs.createTextureCilinderWithNormals(15,15)
+    #Se carga en el shader
     gpu = es.GPUShape().initBuffers()
     pipeline.setupVAO(gpu)
     gpu.fillBuffers(
@@ -591,7 +619,7 @@ def createHouseNode(name,gpuList,posX,posZ,t):
         nodoVentana5.childs+=[window]
         nodoVentana5.transform=tr.matmul([tr.translate(-0.55,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoCasa.childs+=[nodoVentana5]
-    #Según la posición espacial de la casa en la escena debe o no estar rotada para "mirar hacia la calle"
+    #Según la posición espacial de la casa en la escena, esta debe o no estar rotada para "mirar hacia la calle"
     if int((posX/-1.5))%2==0:
         if posX>=-6 and posX<=-1:
             nodoCasa.transform=tr.matmul([tr.translate(posX,0.0965,posZ),tr.rotationY(np.pi)])
@@ -643,9 +671,12 @@ def createSatelliteNode(name,gpu,type):
         nodoSatelite.transform=tr.matmul([tr.translate(-6,-30,7),tr.scale(0.02,0.02,0.02)])
     return nodoSatelite
 
+#Función para crear un nodo poste de luz
 def createLamp(name,gpu,posX,posZ):
     nodoPoste=sg.SceneGraphNode(name)
     nodoPoste.childs+=[gpu]
+    #Al exportar el obj de blender me quedó acostado, por eso la rotación en X para enderezar
+    #es bastante grande también
     nodoPoste.transform=tr.matmul([tr.translate(posX,0.7,posZ),tr.scale(0.1,0.13,0.1),tr.rotationX(np.pi/2)])
     if int((posX/-1.5))%2==0:
         if posX>=-6 and posX<=-1:
@@ -654,3 +685,43 @@ def createLamp(name,gpu,posX,posZ):
         if posX>=-2.2 or posX<=-8:
             nodoPoste.transform=tr.matmul([tr.translate(posX,0.7,posZ),tr.scale(0.1,0.13,0.1),tr.rotationY(np.pi),tr.rotationX(np.pi/2)])
     return nodoPoste
+
+#Función para crear el nodo con el auto
+def createCar(pipeline):
+    #Nodo raíz
+    car=sg.SceneGraphNode("Car")
+    #Nodo para el cuerpo
+    body=sg.SceneGraphNode("body")
+    #Gpu shape del cuerpo
+    gpuBody=setupOBJ(pipeline,"car.obj",(233/255.,203/255.,70/255.))
+    body.childs+=[gpuBody]
+    #Gpu shape de las ruedas
+    gpuWheel=setupOBJ(pipeline,"wheel.obj",(0.,0.,0.))
+    #Nodo para contener todas las ruedas
+    wheels=sg.SceneGraphNode("Wheels")
+    #Ruedas frontales
+    front=sg.SceneGraphNode("FrontWheels")
+    #Ruedas traseras
+    back=sg.SceneGraphNode("BackWheels")
+    #Nodos frontales derecho e izquierdo
+    frontR=sg.SceneGraphNode("FrontRight")
+    frontR.childs+=[gpuWheel]
+    frontR.transform=tr.translate(-1.1,0,1.7)
+    frontL=sg.SceneGraphNode("FrontLeft")
+    frontL.childs+=[gpuWheel]
+    frontL.transform=tr.translate(0.9,0,1.7)
+    #Nodos traseros
+    backR=sg.SceneGraphNode("BackRight")
+    backR.childs+=[gpuWheel]
+    backR.transform=tr.translate(-1.1,0,-1.4)
+    backL=sg.SceneGraphNode("BackLeft")
+    backL.childs+=[gpuWheel]
+    backL.transform=tr.translate(0.9,0,-1.4)
+    front.transform=tr.translate(0,-0.35,0)
+    front.childs+=[frontR,frontL]
+    back.transform=tr.translate(0,-0.35,0)
+    back.childs+=[backR,backL]
+    wheels.childs+=[front,back]
+    car.childs+=[body,wheels]
+    car.transform=tr.matmul([tr.rotationY(-np.pi/2),tr.scale(0.2,0.2,0.2)])
+    return (car,frontR,backR,frontL,backL)
