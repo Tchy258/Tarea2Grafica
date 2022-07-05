@@ -41,11 +41,11 @@ struct SpotLight {
 };
             
 uniform vec3 viewPosition; 
-#define NR_POINT_LIGHTS 1
+#define NR_POINT_LIGHTS 2
 
 //TAREA4: El único lugar en donde tienes que cambiar algo para la tarea 4 es esta constante, que indica
 // la cantidad de luces spotlight de tu escena. Todo el resto del código está listo y funcional :)
-#define NR_SPOTLIGHTS 6
+#define NR_SPOTLIGHTS 39
 
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLights[NR_SPOTLIGHTS];
