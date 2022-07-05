@@ -41,11 +41,10 @@ struct SpotLight {
 };
             
 uniform vec3 viewPosition; 
+//Se definen dos point lights para el sol y la luna
 #define NR_POINT_LIGHTS 2
-
-//TAREA4: El único lugar en donde tienes que cambiar algo para la tarea 4 es esta constante, que indica
-// la cantidad de luces spotlight de tu escena. Todo el resto del código está listo y funcional :)
-#define NR_SPOTLIGHTS 39
+//Una linterna 2 focos de autos y 38 postes de luz
+#define NR_SPOTLIGHTS 41
 
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLights[NR_SPOTLIGHTS];
