@@ -1,6 +1,7 @@
+from re import A
 import glfw
 from OpenGL.GL import *
-from grafica.setup import setProjection, setView, createScene,createSatellites
+from grafica.setup import setProjection, setView, createScene,createSatellites,createLampScene
 from grafica.gpu_shape import GPUShape
 import grafica.basic_shapes as bs
 import grafica.easy_shaders as es
@@ -14,10 +15,11 @@ import math
 
 #Objeto para controlar la camara
 controller=Controller()
+#Diccionario de luces
 spotlightsPool = dict()
 
 def setLights():
-    #TAREA4: Primera luz spotlight
+    #Luz de la linterna
     spot1 = Spotlight()
     spot1.ambient = np.array([0.5, 0.5, 0.5])
     spot1.diffuse = np.array([1.0, 1.0, 1.0])
@@ -25,80 +27,48 @@ def setLights():
     spot1.constant = 1.0
     spot1.linear = 0.09
     spot1.quadratic = 0.032
-    spot1.position = np.array([-6., 30., 7.]) #TAREA4: esta ubicada en esta posición
-    spot1.direction = np.array([0, -1, 0]) #TAREA4: está apuntando perpendicularmente hacia el terreno (Y-, o sea hacia abajo)
-    spot1.cutOff = np.cos(np.radians(10)) #TAREA4: corte del ángulo para la luz
-    spot1.outerCutOff = np.cos(np.radians(45)) #TAREA4: la apertura permitida de la luz es de 45°
-                                                #mientras más alto es este ángulo, más se difumina su efecto
-    
-    spotlightsPool['spot1'] = spot1 #TAREA4: almacenamos la luz en el diccionario, con una clave única
+    spot1.position = controller.camPos #Sigue a la cámara
+    spot1.direction = controller.camFront #Apunta donde mire la camara
+    spot1.cutOff = np.cos(np.radians(12.5)) #Como es una linterna, el ángulo es pequeño
+    spot1.outerCutOff = np.cos(np.radians(30)) 
+    spotlightsPool['spot1'] = spot1 #Se guarda en el dicionario de luces
 
-    #TAREA4: Segunda luz spotlight
-    spot2 = Spotlight()
-    spot2.ambient = np.array([0.0, 0.0, 0.0])
-    spot2.diffuse = np.array([0.3, 1.0, 1.0])
-    spot2.specular = np.array([1.0, 1.0, 1.0])
-    spot2.constant = 1.0
-    spot2.linear = 0.09
-    spot2.quadratic = 0.032
-    spot2.position = controller.camPos  #TAREA4: Está ubicada en esta posición
-    spot2.direction = controller.camFront #TAREA4: también apunta hacia abajo
-    spot2.cutOff = np.cos(np.radians(12.5))
-    spot2.outerCutOff = np.cos(np.radians(30)) #TAREA4: Esta luz tiene menos apertura, por eso es más focalizada
-    spotlightsPool['spot2'] = spot2 #TAREA4: almacenamos la luz en el diccionario
+    baseString='spot'
+    for i in range(2,40):
+        spot=Spotlight()
+        spot.ambient = np.array([0.0, 0.0, 0.0])
+        spot.diffuse = np.array([0.6, 0.6, 0.6])
+        spot.specular = np.array([0.6, 0.6, 0.6])
+        spot.constant = 0.9
+        spot.linear = 0.3
+        spot.quadratic = 0.06
+        spot.position = np.array([0,0,0]) 
+        spot.direction = np.array([0,-1,0]) #Apunta donde mire la camara
+        spot.cutOff = np.cos(np.radians(12.5)) #Como es una linterna, el ángulo es pequeño
+        spot.outerCutOff = np.cos(np.radians(45))
+        spotlightsPool[baseString+str(i)] = spot
+    k=1
+    for j in range(0,10,2):
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([-1.5-0.8,1.46,1.5*j-0.65])
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([0+0.8,1.46,1.5*j-0.65])
+    for j in range(0,13,2):
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([-(1.5*3)+0.8,1.46,1.5*j-0.65])
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([-(1.5*4)-0.8,1.46,1.5*j-0.65])
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([-(1.5*6)+0.8,1.46,1.5*j-0.65])
+        k+=1
+        spot = spotlightsPool[baseString+str(k)]
+        spot.position = np.array([-(1.5*7)-0.8,1.46,1.5*j-0.65])
 
-    #TAREA5: Luces spotlights para los faros de los autos
-    spot3 = Spotlight()
-    spot3.ambient = np.array([0, 0, 0])
-    spot3.diffuse = np.array([0.5, 1.0, 1.0])
-    spot3.specular = np.array([1.0, 1.0, 1.0])
-    spot3.constant = 1.0
-    spot3.linear = 0.09
-    spot3.quadratic = 0.032
-    spot3.position = np.array([3., 1., 0.]) # posición inicial
-    spot3.direction = np.array([0, -1, 0]) # dirección inicial
-    spot3.cutOff = np.cos(np.radians(12.5)) 
-    spot3.outerCutOff = np.cos(np.radians(30)) 
-    spotlightsPool['spot3'] = spot3 #TAREA4: almacenamos la luz en el diccionario
-
-    spot4 = Spotlight()
-    spot4.ambient = np.array([0, 0, 0])
-    spot4.diffuse = np.array([1.0, 1.0, 1.0])
-    spot4.specular = np.array([1.0, 1.0, 1.0])
-    spot4.constant = 1.0
-    spot4.linear = 0.09
-    spot4.quadratic = 0.032
-    spot4.position = np.array([1.89, 0.15, 4.8])
-    spot4.direction = np.array([0, -0.5, -1])
-    spot4.cutOff = np.cos(np.radians(12.5))
-    spot4.outerCutOff = np.cos(np.radians(30)) 
-    spotlightsPool['spot4'] = spot4 #TAREA4: almacenamos la luz en el diccionario
-
-    spot5 = Spotlight()
-    spot5.ambient = np.array([0, 0, 0])
-    spot5.diffuse = np.array([1.0, 1.0, 1.0])
-    spot5.specular = np.array([1.0, 1.0, 1.0])
-    spot5.constant = 1.0
-    spot5.linear = 0.09
-    spot5.quadratic = 0.032
-    spot5.position = np.array([2.10, 0.15, 4.8])
-    spot5.direction = np.array([0, -0.5, -1]) 
-    spot5.cutOff = np.cos(np.radians(12.5)) 
-    spot5.outerCutOff = np.cos(np.radians(30)) 
-    spotlightsPool['spot5'] = spot5 #TAREA4: almacenamos la luz en el diccionario
-
-    spot6 = Spotlight()
-    spot6.ambient = np.array([0, 0, 0])
-    spot6.diffuse = np.array([1.0, 1.0, 1.0])
-    spot6.specular = np.array([1.0, 1.0, 1.0])
-    spot6.constant = 1.0
-    spot6.linear = 0.09
-    spot6.quadratic = 0.032
-    spot6.position = np.array([1.89, 0.15, 4.8]) 
-    spot6.direction = np.array([0, -0.5, -1]) 
-    spot6.cutOff = np.cos(np.radians(12.5))
-    spot6.outerCutOff = np.cos(np.radians(30)) 
-    spotlightsPool['spot6'] = spot6 #TAREA4: almacenamos la luz en el diccionario
 
 
 #Funcion para manejar el movimiento del mouse
@@ -202,8 +172,8 @@ def check_key_inputs(window):
         #if controller.camPos[2]<-2:
         #    controller.camPos[2]=-2
         #La linterna se mueve junto con la cámara
-        spotlightsPool['spot2'].position=controller.camPos
-        spotlightsPool['spot2'].direction=controller.camFront
+        spotlightsPool['spot1'].position=controller.camPos
+        spotlightsPool['spot1'].direction=controller.camFront
         
 #Esta función imprime la hora cuando ha pasado 1 hora del día
 #una hora está definida arbitrariamiente como un desplace de 15 grados
@@ -220,7 +190,7 @@ def timeOfDay(theta,anterior):
 
 #Esta función toma un valor de temperatura de color en Kelvin y la convierte a
 #RGB, fue adaptada de https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-def temperatureToRGB(temp):
+def temperatureToRGB(temp,rojo,verde,azul):
     if temp<=66:
         r = 255.
         g = temp
@@ -252,7 +222,7 @@ def temperatureToRGB(temp):
             g=0
         if g > 255:
             g=255
-    return (r/255.,g/255.,b/255.)
+    return ((abs(r/255.-rojo)),abs(g/255.-verde),abs(b/255.-azul))
 
 def main():
     #Si no se pudo iniciar glfw, se cierra la ventana
@@ -279,15 +249,15 @@ def main():
     colorShaderProgram = ls.MultipleLightPhongShaderProgram()
     grafoEscena=createScene(textureShaderProgram)
     satelites=createSatellites(colorShaderProgram)
+    postes=createLampScene(colorShaderProgram)
     luna=sg.findNode(satelites,"Moon")
     #Color del fondo
-    temperatura=300
-    (rojoCielo,verdeCielo,azulCielo)=temperatureToRGB(temperatura)
+    temperatura=3000
+    (rojoCielo,verdeCielo,azulCielo)=temperatureToRGB(temperatura,0,0,0)
     glClearColor(rojoCielo, verdeCielo, azulCielo, 0.5)
     #Testeo de profundidad para mostrar correctamente objetos 3D
     glEnable(GL_DEPTH_TEST)
     setLights()
-    luzSol=spotlightsPool['spot1']
     #Para que el mouse se quede dentro de la ventana y se pueda mover la camara libremente
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     #Para que la ventana registre los clicks del mouse
@@ -301,6 +271,15 @@ def main():
     rotacionLuna=0
     horaAnterior=11
     estaAnocheciendo=True
+    deltaRojo=0
+    deltaVerde=0
+    deltaAzul=0
+    rojoAtardecer=0
+    verdeAtardecer=0
+    azulAtardecer=0
+    rojoNoche=0
+    verdeNoche=0
+    azulNoche=0
     while not glfw.window_should_close(window):
         t1=glfw.get_time()
         dt=t1-t0
@@ -315,33 +294,56 @@ def main():
             rotacionLuna-=2*np.pi
         luna.transform=tr.matmul([luna.transform,tr.rotationY(rotacionLuna)])
         satelites.transform=tr.rotationZ(rotacionSatelites)
-        horaAnterior=timeOfDay(rotacionSatelites,horaAnterior)            
+        horaAnterior=timeOfDay(rotacionSatelites,horaAnterior)
+        if horaAnterior>16 or horaAnterior<2:
+            estaAnocheciendo=True
+        else:
+            estaAnocheciendo=False
+        print(controller.camPos)
         glfw.poll_events()
         check_key_inputs(window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         #Se cambian la vista y proyección de ser necesario
         setView(textureShaderProgram,colorShaderProgram,controller)
-        setProjection(controller, textureShaderProgram,colorShaderProgram,constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT,spotlightsPool,rotacionSatelites)
+        setProjection(controller, textureShaderProgram,colorShaderProgram,constants.SCREEN_WIDTH,constants.SCREEN_HEIGHT,spotlightsPool,rotacionSatelites,horaAnterior)
 
         glUseProgram(textureShaderProgram.shaderProgram)
         #Se dibuja la escena
         sg.drawSceneGraphNode(grafoEscena, textureShaderProgram, "model")
         glUseProgram(colorShaderProgram.shaderProgram)
         sg.drawSceneGraphNode(satelites, colorShaderProgram, "model")
+        glUseProgram(colorShaderProgram.shaderProgram)
+        sg.drawSceneGraphNode(postes,colorShaderProgram,"model")
+        (deltaRojo,deltaVerde,deltaAzul)=temperatureToRGB(temperatura,rojoCielo,verdeCielo,azulCielo)
         if estaAnocheciendo:
-            temperatura-= rotacionSatelites*(np.cos(rotacionSatelites)+0.01)
-            if temperatura<=20:
-                temperatura=20
-                estaAnocheciendo=False
+            temperatura-= 100*dt*(1-abs(np.cos(rotacionSatelites)))
+            if temperatura<=1:
+                temperatura=1
+            rojoCielo-=deltaRojo*dt
+            verdeCielo-=deltaVerde*dt
+            azulCielo-=deltaAzul*dt
         else:
-            temperatura+= rotacionSatelites*(np.cos(rotacionSatelites)+0.01)
-            if temperatura>=300:
-                temperatura=300
-                estaAnocheciendo = True
-        if temperatura<1: temperatura+=20
-        (rojoCielo,verdeCielo,azulCielo)=temperatureToRGB(temperatura)
-        glClearColor(rojoCielo, verdeCielo, azulCielo, 0.5)
+            temperatura+= 500*dt*(1-abs(np.cos(rotacionSatelites)))
+            if temperatura>=3000:
+                temperatura=3000
+            rojoCielo+=deltaRojo*dt
+            verdeCielo+=deltaVerde*dt
+            azulCielo+=deltaAzul*dt
+        if temperatura<1: temperatura+=10
+        if (horaAnterior>=17 and horaAnterior<=19) or (horaAnterior>=4 and horaAnterior<=5):
+            rojoAtardecer=(rojoCielo+1/255.)*10
+            verdeAtardecer=verdeCielo
+            azulAtardecer=(azulCielo+1/255.)/10
+            glClearColor(rojoAtardecer, verdeAtardecer, azulAtardecer, 0.5)
+        else:
+            if (horaAnterior>=20 and horaAnterior<=23) or (horaAnterior>=0 and horaAnterior<=2):
+                rojoNoche=rojoCielo/10
+                verdeNoche=verdeCielo/10
+                azulNoche=azulCielo/5
+                glClearColor(rojoNoche, verdeNoche, azulNoche, 0.5)
+            else:
+                glClearColor(rojoCielo, verdeCielo, azulCielo, 0.5)
         glfw.swap_buffers(window)
     
     grafoEscena.clear()
