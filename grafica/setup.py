@@ -15,47 +15,72 @@ from grafica.assets_path import getAssetPath
 
 #La función setProjection dibuja lo que efectivamente se ve en pantalla, lo que ve la cámara
 #y como se comportan las luces
-def setProjection(controller,lightPipeline, texPipeline, width, height,spotlightsPool,theta):
+def setProjection(controller,lightPipeline, texPipeline, width, height,spotlightsPool,theta,hora):
     #Se elijieron 40 y 22.5 para mantener la relación de aspecto 16:9
     if controller.IsOrtho:
         projection = tr.ortho(-40, 40, -22.5,22.5 , 0.1, 100)
     else:
         projection = tr.perspective(45, float(width)/float(height), 0.1, 300)
+    #Si no está "prendida" la linterna
     if not controller.flashlightOn:
-        spotlightsPool['spot2'].ambient = np.array([0, 0, 0])
-        spotlightsPool['spot2'].diffuse = np.array([0., 0., 0.])
-        spotlightsPool['spot2'].specular = np.array([0., 0., 0.])
+        #Sus valores de intensidad son 0
+        spotlightsPool['spot1'].ambient = np.array([0, 0, 0])
+        spotlightsPool['spot1'].diffuse = np.array([0., 0., 0.])
+        spotlightsPool['spot1'].specular = np.array([0., 0., 0.])
     else:
-        spotlightsPool['spot2'].ambient = np.array([0, 0, 0])
-        spotlightsPool['spot2'].diffuse = np.array([1.0, 1.0, 1.0])
-        spotlightsPool['spot2'].specular = np.array([1.0, 1.0, 1.0])
+        spotlightsPool['spot1'].ambient = np.array([0, 0, 0])
+        spotlightsPool['spot1'].diffuse = np.array([1.0, 1.0, 1.0])
+        spotlightsPool['spot1'].specular = np.array([1.0, 1.0, 1.0])
 
-    #TAREA4: Como tenemos 2 shaders con múltiples luces, tenemos que enviar toda esa información a cada shader
-    #TAREA4: Primero al shader de color
+    #Dependiendo de la hora
+    for i in range(2,40):
+        if hora>18 or hora<7:
+            spotlightsPool['spot'+str(i)].ambient = np.array([0.0, 0.0, 0.0])
+            spotlightsPool['spot'+str(i)].diffuse = np.array([0.6, 0.6, 0.6])
+            spotlightsPool['spot'+str(i)].specular = np.array([0.6, 0.6, 0.6])
+        else:
+            spotlightsPool['spot'+str(i)].ambient = np.array([0, 0, 0])
+            spotlightsPool['spot'+str(i)].diffuse = np.array([0., 0., 0.])
+            spotlightsPool['spot'+str(i)].specular = np.array([0., 0., 0.])
+
+
+
+    #Se fija la proyección en el shader de la cámara y de los objetos sin texturas
     glUseProgram(lightPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(lightPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
     
-    #TAREA4: Enviamos la información de la luz puntual y del material
-    #TAREA4: La luz puntual está desactivada por defecto (ya que su componente ambiente es 0.0, 0.0, 0.0), pero pueden usarla
-    # para añadir más realismo a la escena
-    x=-6*np.cos(theta)
-    y=30
-    z=7*np.sin(theta)
-    ambient=0.3+0.3*np.cos(theta)
-    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].ambient"), ambient, ambient, ambient)
+    #Esta luz puntual representa al sol y la luna
+    #El día y la noche se distinguen según el ángulo de rotación respecto al centro de la escena que tengan
+    xSol=-6*np.cos(theta)
+    ySol=30
+    zSol=7*np.sin(theta)
+    ambientSol=max(0.7+0.5*np.cos(theta),0)
+    xLuna=xSol
+    yLuna=-ySol
+    zLuna=zSol
+    ambientLuna=max(0.001-0.05*np.cos(theta),0)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].ambient"), ambientSol, ambientSol, ambientSol)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].diffuse"), 0.0, 0.0, 0.0)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].specular"), 0.0, 0.0, 0.0)
     glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].constant"), 0.1)
     glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].linear"), 0.1)
     glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].quadratic"), 0.01)
-    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].position"),x,y,z )
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[0].position"),xSol,ySol,zSol )
+
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].ambient"), ambientLuna, ambientLuna, ambientLuna)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].diffuse"), 0.0, 0.0, 0.0)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].specular"), 0.0, 0.0, 0.0)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].constant"), 0.1)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].linear"), 0.1)
+    glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].quadratic"), 0.01)
+    glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "pointLights[1].position"),xLuna,yLuna,zLuna )
 
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.ambient"), 0.2, 0.2, 0.2)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.diffuse"), 0.9, 0.9, 0.9)
     glUniform3f(glGetUniformLocation(lightPipeline.shaderProgram, "material.specular"), 1.0, 1.0, 1.0)
     glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, "material.shininess"), 32)
 
-    #TAREA4: Aprovechamos que las luces spotlight están almacenadas en el diccionario para mandarlas al shader
+    #Se envían las luces del diccionario spotLightspool al shader de luces
     for i, (k,v) in enumerate(spotlightsPool.items()):
         baseString = "spotLights[" + str(i) + "]."
         glUniform3fv(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "ambient"), 1, v.ambient)
@@ -69,18 +94,26 @@ def setProjection(controller,lightPipeline, texPipeline, width, height,spotlight
         glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "cutOff"), v.cutOff)
         glUniform1f(glGetUniformLocation(lightPipeline.shaderProgram, baseString + "outerCutOff"), v.outerCutOff)
 
-    #TAREA4: Ahora repetimos todo el proceso para el shader de texturas con mútiples luces
+    #Lo mismo para el shader de texturas
     glUseProgram(texPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(texPipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
     
 
-    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].ambient"), 0.4, 0.4, 0.4)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].ambient"), ambientSol, ambientSol, ambientSol)
     glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].diffuse"), 0.0, 0.0, 0.0)
     glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].specular"), 0.0, 0.0, 0.0)
     glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].constant"), 0.1)
     glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].linear"), 0.1)
     glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].quadratic"), 0.01)
-    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].position"), -7.3, 5, 10.855)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[0].position"), xSol, ySol, zSol)
+
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].ambient"), ambientLuna, ambientLuna, ambientLuna)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].diffuse"), 0.0, 0.0, 0.0)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].specular"), 0.0, 0.0, 0.0)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].constant"), 0.1)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].linear"), 0.1)
+    glUniform1f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].quadratic"), 0.01)
+    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "pointLights[1].position"), xLuna, yLuna, zLuna)
 
     glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "material.ambient"), 0.2, 0.2, 0.2)
     glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "material.diffuse"), 0.9, 0.9, 0.9)
@@ -121,6 +154,7 @@ def setView(lightPipeline,texPipeline,controller):
     Zesf = np.sin(controller.cameraPhiAngle)*np.sin(controller.cameraThetaAngle) #coordenada Y esferica
     Yesf = np.cos(controller.cameraThetaAngle)
 
+    #Posición de la vista
     viewPos = np.array([controller.camPos[0]-Xesf,controller.camPos[1]-Yesf,controller.camPos[2]-Zesf])
 
     glUseProgram(texPipeline.shaderProgram)
@@ -152,7 +186,7 @@ def readFaceVertex(faceDescription):
     return faceVertex
 
 
-#Está función lee el archivo obj
+#Esta función lee el archivo obj y crea un gpuShape a partir de él con vértices e indices
 def readOBJ(filename, color):
 
     vertices = []
@@ -205,7 +239,7 @@ def readOBJ(filename, color):
         return bs.Shape(vertexData, indices)
 
 
-#Función que crea todo el grafo de escena
+#Función que crea todo lo que tiene texturas en la escena
 def createScene(pipeline):
     #Creacion del nodo raiz
     scene = sg.SceneGraphNode('system')
@@ -285,12 +319,13 @@ def createScene(pipeline):
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,1)
                 houseGroup3.childs += [node]
     
-
+    #Piso
     gpuFloor = setupGpu(pipeline,"piso.jpg")
     #Agregandolo a un nodo que representa al entorno de la escena
     environment = sg.SceneGraphNode("Environment")
     scene.childs+=[environment]
     floors = sg.SceneGraphNode('floorTiles')
+    #Se crean "filas" de cuadrados de piso (un stretch)
     for i in range(-1,8,1):
         if i!=-1 and i!=2 and i!=5:
             if i==0 or i==1:
@@ -301,7 +336,7 @@ def createScene(pipeline):
             floors.childs+=[stretch]
 
     environment.childs+=[floors]
-    #Se crea la zona de pasto
+    #Se crea la zona de pasto con un piso subyacente que tiene la misma forma
     gpuGrass=setupGpu(pipeline,"pasto.jpg")
     grassTile=createEnvNode('grass node',gpuGrass,"C",1,"Pasto")
     grass = sg.SceneGraphNode('grass')
@@ -338,13 +373,18 @@ def createScene(pipeline):
     roads.childs+=[roadsH]
     gpuRoad2=setupGpu(pipeline,"pista.jpg",2)
     curvedRoads=sg.SceneGraphNode("curvedRoads")
+    #Las esquinas de las curvas
     curve=createEnvNode("curve1",gpuRoad2,"C",1,"Road")
     curve.transform=tr.matmul([tr.translate(1.5-0.135,0,14.66445),tr.shearing(0,0,-0.306,0.0055),curve.transform])
     curve2=createEnvNode("curve2",gpuRoad2,"C",1,"Road")
-    curve2.transform=tr.matmul([tr.translate(-2.2,0,19.7),tr.rotationY(-np.pi/4),tr.shearing(0,0,-0.2,-0.4),tr.scale(1.3,1,2.1),curve2.transform])
+    curve2.transform=tr.matmul([tr.translate(-1.91,0,19.4955),tr.scale(0.81,1,0.99),tr.rotationY(-np.pi/2),tr.rotationX(np.pi),curve2.transform])
+    curve3=createEnvNode("curve3",gpuRoad2,"C",1,"Road")
+    curve3.transform=tr.matmul([tr.translate(-1.54,0,19.4),tr.scale(0.81,1,0.99),tr.rotationY(-np.pi/2+np.deg2rad(29)),tr.rotationX(-np.pi),curve3.transform])
+    curvedRoads.childs+=[curve3]
     curvedRoads.childs+=[curve2]
     curvedRoads.childs+=[curve]
     roads.childs+=[curvedRoads]
+    #La parte "diagonal" de la pista (el límite izquierdo de la escena visto desde arriba)
     diagonalRoads=sg.SceneGraphNode("diagonalRoads")
     stretch=createEnvNode("stretch " + str(i),gpuRoad,"H",3,"Road")
     stretch.transform=tr.matmul([tr.translate(-1.12,0,18.41),tr.rotationY(np.arctan(4.5/3)),tr.scale(1.2,1,1),stretch.transform])
@@ -354,9 +394,11 @@ def createScene(pipeline):
 
     return scene
 
+#Esta función crea un nodo de grafo de escena que representa al sol y la luna, debe ser aparte porque usan
+#un shader/pipeline distinto
 def createSatellites(pipeline):
     gpuSun=setupOBJ(pipeline,"sun.obj",(1.,1.,51/255.))
-    gpuMoon=setupOBJ(pipeline,"moon.obj",(1,1,1))
+    gpuMoon=setupOBJ(pipeline,"moon.obj",(229/255.,216/255.,152/255.))
     satellites=sg.SceneGraphNode("Satellites")
     sun=createSatelliteNode("Sun",gpuSun,"Sun")
     moon=createSatelliteNode("Moon",gpuMoon,"Moon")
@@ -364,6 +406,47 @@ def createSatellites(pipeline):
     satellites.childs+=[moon]
     return satellites
 
+def createLampScene(pipeline):
+    lamps=sg.SceneGraphNode("lamps")
+    lampGroup1=sg.SceneGraphNode("lampGroup1")
+    lampGroup2=sg.SceneGraphNode("lampGroup2")
+    gpuLamp=setupOBJ(pipeline,getAssetPath("lampPost.obj"),(0.5,0.5,0.5))
+    for j in range(0,10,2):
+        node=createLamp("lamp "+str(j),gpuLamp,0,1.5*j)
+        lampGroup1.childs+=[node]
+        node=createLamp("lamp "+str(j),gpuLamp,-1.5,1.5*j)
+        lampGroup2.childs+=[node]
+    lampGroup1.transform=tr.translate(0.5,0,0)
+    lampGroup2.transform=tr.translate(-0.5,0,0)
+    lampGroup3=sg.SceneGraphNode("lampGroup3")
+    lampGroup4=sg.SceneGraphNode("lampGroup4")
+    for j in range(0,13,2):
+        node=createLamp("lamp "+str(j),gpuLamp,-1.5*3,1.5*j)
+        lampGroup3.childs+=[node]
+        node=createLamp("lamp "+str(j),gpuLamp,-1.5*4,1.5*j)
+        lampGroup4.childs+=[node]
+    lampGroup3.transform=tr.translate(0.5,0,0)
+    lampGroup4.transform=tr.translate(-0.5,0,0)
+    lampGroup5=sg.SceneGraphNode("lampGroup5")
+    lampGroup6=sg.SceneGraphNode("lampGroup6")
+    for i in range(6,8):
+        for j in range(0,13,2):
+            node=createLamp("lamp "+str(j),gpuLamp,-1.5*6,1.5*j)
+            lampGroup5.childs+=[node]
+            node=createLamp("lamp "+str(j),gpuLamp,-1.5*7,1.5*j)
+            lampGroup6.childs+=[node]
+    lampGroup5.transform=tr.translate(0.5,0,0)
+    lampGroup6.transform=tr.translate(-0.5,0,0)
+    lamps.childs+=[lampGroup1]
+    lamps.childs+=[lampGroup2]
+    lamps.childs+=[lampGroup3]
+    lamps.childs+=[lampGroup4]
+    lamps.childs+=[lampGroup5]
+    lamps.childs+=[lampGroup6]
+    lamps.transform=tr.translate(0,0,-0.65)
+    return lamps
+
+#Función general para formar un gpuShape
 def setupGpu(pipeline,imgName,param=0):
     fullName=imgName.split('.')
     name=fullName[0]
@@ -389,6 +472,7 @@ def setupGpu(pipeline,imgName,param=0):
 
     return gpu
 
+#Función para leer un archivo obj y retornar su gpuShape
 def setupOBJ(pipeline,filename,color):
     shape=readOBJ(getAssetPath(filename),color)
     gpu = es.GPUShape().initBuffers()
@@ -398,6 +482,7 @@ def setupOBJ(pipeline,filename,color):
     return gpu
     
 
+#Función auxiliar para el techo que no es una pirámide
 def setupRoof2(pipeline,imgName):
     shapeRoof = bs.createTextureTrapezoidWithNormals()
     gpuRoof = es.GPUShape().initBuffers()
@@ -409,11 +494,13 @@ def setupRoof2(pipeline,imgName):
     
     return gpuRoof
 
-
+#Función para crear una casa completa dada sus gpuShape, su posición y su "tipo"
+#Donde el tipo determina la forma que tiene la casa
 def createHouseNode(name,gpuList,posX,posZ,t):
+    #Nodo principal de esta casa, estara desplazado según posX y posZ
     nodoCasa = sg.SceneGraphNode(name)
     nodoCasa.transform=tr.translate(posX,0.0965,posZ)
-
+    #Paredes
     wall=gpuList[0]
     nodoParedes=sg.SceneGraphNode(name + " walls")
     nodoParedes.childs+=[wall]
@@ -421,14 +508,17 @@ def createHouseNode(name,gpuList,posX,posZ,t):
     nodoCasa.childs+=[nodoParedes]
     roof=gpuList[1]
     roof2=gpuList[4]
+    #Techo
     nodoTecho=sg.SceneGraphNode(name + " roof")
     nodoTecho.childs+=[roof]
     if t==1:
+        #Si es casa tipo 1, es de 1 piso
         nodoTecho.transform=tr.matmul([tr.translate(0,0.65,0),tr.scale(0.75,0.45,1.3)])
     nodoCasa.childs+=[nodoTecho]
     door=gpuList[2]
+    #Puerta, separada en 2 nodos por el marco y la chapa
     nodoPuerta=sg.SceneGraphNode(name + " door")
-    nodoMarco=sg.SceneGraphNode(name + " door")
+    nodoMarco=sg.SceneGraphNode(name + " frame")
     nodoMarco.childs+=[door]
     nodoMarco.transform=tr.matmul([tr.translate(0.25,0.18,0.1),tr.rotationY(np.pi/2),tr.scale(0.22,0.44,0.04)])
     lock=gpuList[-1]
@@ -439,6 +529,7 @@ def createHouseNode(name,gpuList,posX,posZ,t):
     nodoPuerta.childs+=[nodoMarco,nodoChapa]
     nodoCasa.childs+=[nodoPuerta]
     window=gpuList[3]
+    #Ventanas
     nodoVentana1=sg.SceneGraphNode(name + " window1")
     nodoVentana1.childs+=[window]
     nodoVentana1.transform=tr.matmul([tr.translate(-0.25,0.25,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
@@ -451,13 +542,16 @@ def createHouseNode(name,gpuList,posX,posZ,t):
     nodoVentana3.childs+=[window]
     nodoVentana3.transform=tr.matmul([tr.translate(0,0.25,0.49),tr.scale(0.33,0.22,0.04)])
     nodoCasa.childs+=[nodoVentana3]
-
+    #Si es casa de tipo 2
     if t==2:
+        #Segundo piso
         nodoSegundoPiso=sg.SceneGraphNode(name + " second floor")
         nodoSegundoPiso.childs+=[wall]
         nodoSegundoPiso.transform=tr.matmul([tr.translate(0,0.7005,0),tr.scale(0.5,0.5,0.8)])
         nodoCasa.childs+=[nodoSegundoPiso]
+        #Reubicación de techo
         nodoTecho.transform=tr.matmul([tr.translate(0,1.09,0),tr.scale(0.75,0.45,1)])
+        #Otros techos
         nodoTecho2=sg.SceneGraphNode(name + " second roof")
         nodoTecho2.childs+=[roof2]
         nodoTecho2.transform=tr.matmul([tr.translate(0,0.55,0.5),tr.scale(0.6,0.2,0.2)])
@@ -466,6 +560,7 @@ def createHouseNode(name,gpuList,posX,posZ,t):
         nodoTecho3.childs+=[roof2]
         nodoTecho3.transform=tr.matmul([tr.translate(0,0.55,-0.5),tr.rotationY(np.pi),tr.scale(0.6,0.2,0.2)])
         nodoCasa.childs+=[nodoTecho3]
+        #Más ventanas
         nodoVentana4=sg.SceneGraphNode(name + " window4")
         nodoVentana4.childs+=[window]
         nodoVentana4.transform=tr.matmul([tr.translate(0.25,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
@@ -474,12 +569,16 @@ def createHouseNode(name,gpuList,posX,posZ,t):
         nodoVentana5.childs+=[window]
         nodoVentana5.transform=tr.matmul([tr.translate(-0.25,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoCasa.childs+=[nodoVentana5]
+    #Si es casa de tipo 3
     elif t==3:
+        #Es de tamaño ligeramente diferente
         nodoParedes.transform=tr.matmul([tr.translate(-0.15,0.2,0),tr.scale(0.8,0.5,1)])
+        #Segundo piso
         nodoSegundoPiso=sg.SceneGraphNode(name + " second floor")
         nodoSegundoPiso.childs+=[wall]
         nodoSegundoPiso.transform=tr.matmul([tr.translate(-0.325,0.65,0),tr.scale(0.45,0.4,1)])
         nodoCasa.childs+=[nodoSegundoPiso]
+        #Reubicación de techo y ventanas
         nodoTecho.transform=tr.matmul([tr.translate(-0.35,1.05,0),tr.scale(0.75,0.45,1.2)])
         nodoVentana1.transform=tr.matmul([tr.translate(-0.55,0.25,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoVentana2.transform=tr.matmul([tr.translate(-0.15,0.25,-0.49),tr.scale(0.33,0.22,0.04)])
@@ -492,6 +591,7 @@ def createHouseNode(name,gpuList,posX,posZ,t):
         nodoVentana5.childs+=[window]
         nodoVentana5.transform=tr.matmul([tr.translate(-0.55,0.7,0),tr.rotationY(-np.pi/2),tr.scale(0.33,0.22,0.04)])
         nodoCasa.childs+=[nodoVentana5]
+    #Según la posición espacial de la casa en la escena debe o no estar rotada para "mirar hacia la calle"
     if int((posX/-1.5))%2==0:
         if posX>=-6 and posX<=-1:
             nodoCasa.transform=tr.matmul([tr.translate(posX,0.0965,posZ),tr.rotationY(np.pi)])
@@ -501,8 +601,11 @@ def createHouseNode(name,gpuList,posX,posZ,t):
 
     return nodoCasa
 
+#Función para crear un nodo del entorno, ya sea piso, pista o pasto
 def createEnvNode(name,gpu,direction,length,type="Floor"):
-    nodoPiso=sg.SceneGraphNode(name)
+    #Nodo principal
+    nodoEntorno=sg.SceneGraphNode(name)
+    #Si es parte de una curva o es el pasto
     if direction=="C":
         nodoCuadro=sg.SceneGraphNode(name + " tile")
         if type=="Road":
@@ -512,11 +615,13 @@ def createEnvNode(name,gpu,direction,length,type="Floor"):
         else:
             nodoCuadro.transform=tr.matmul([tr.rotationZ(np.pi),tr.scale(3,0.1,4.5)])
         nodoCuadro.childs+=[gpu]
-        nodoPiso.childs+=[nodoCuadro]
+        nodoEntorno.childs+=[nodoCuadro]
+    #Si no
     else:
         for i in range(length):
             nodoCuadro=sg.SceneGraphNode(name + " tile " + str(i))
             nodoCuadro.transform=tr.matmul([tr.scale(1.5,0.1,1.5)])
+            #Si es "vertical"
             if direction=="V":
                 if type=="Road":
                     nodoCuadro.transform=tr.matmul([tr.translate(0,0,1.5*i),tr.rotationY(np.pi/2),nodoCuadro.transform])
@@ -525,13 +630,27 @@ def createEnvNode(name,gpu,direction,length,type="Floor"):
             else:
                 nodoCuadro.transform=tr.matmul([tr.translate(1.5*i,0,0),nodoCuadro.transform])
             nodoCuadro.childs+=[gpu]
-            nodoPiso.childs+=[nodoCuadro]
-    return nodoPiso
+            nodoEntorno.childs+=[nodoCuadro]
+    return nodoEntorno
 
+#Función para crear un nodo satelite, ya sea el sol o la luna
 def createSatelliteNode(name,gpu,type):
     nodoSatelite=sg.SceneGraphNode(name)
     nodoSatelite.childs+=[gpu]
+    #El sol y la luna tienen la misma posición x,z pero opuestos en y según el origen
     nodoSatelite.transform=tr.matmul([tr.translate(-6,30,7),tr.scale(0.02,0.025,0.02)])
     if type=="Moon":
         nodoSatelite.transform=tr.matmul([tr.translate(-6,-30,7),tr.scale(0.02,0.02,0.02)])
     return nodoSatelite
+
+def createLamp(name,gpu,posX,posZ):
+    nodoPoste=sg.SceneGraphNode(name)
+    nodoPoste.childs+=[gpu]
+    nodoPoste.transform=tr.matmul([tr.translate(posX,0.7,posZ),tr.scale(0.1,0.13,0.1),tr.rotationX(np.pi/2)])
+    if int((posX/-1.5))%2==0:
+        if posX>=-6 and posX<=-1:
+            nodoPoste.transform=tr.matmul([tr.translate(posX,0.7,posZ),tr.scale(0.1,0.13,0.1),tr.rotationY(np.pi),tr.rotationX(np.pi/2)])
+    elif int((posX/-1.5))%2==1: 
+        if posX>=-2.2 or posX<=-8:
+            nodoPoste.transform=tr.matmul([tr.translate(posX,0.7,posZ),tr.scale(0.1,0.13,0.1),tr.rotationY(np.pi),tr.rotationX(np.pi/2)])
+    return nodoPoste
