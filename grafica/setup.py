@@ -1,5 +1,6 @@
 #Este archivo es donde se crean la mayoría de objetos
 from os import system
+import random
 from pyparsing import traceParseAction
 from setuptools import setup
 import grafica.transformations as tr
@@ -8,6 +9,7 @@ import numpy as np
 import grafica.scene_graph as sg
 import grafica.basic_shapes as bs
 import grafica.easy_shaders as es
+from math import ceil
 from grafica.controller import Controller,Spotlight
 from grafica.assets_path import getAssetPath
 
@@ -274,7 +276,13 @@ def createScene(pipeline):
     for i in range(-1,1,1):
         for j in range(10):
             #Se crean 20 casas de 3 tipos entre las coordenadas -1.5 y 0 del eje x
-            t=j%3
+            #El tipo de la casa esta determinado por la suma de 2 numeros random modulo 3
+            t1=random.random()
+            t2=random.random()
+            while (t1<0 or t2<0):
+                t1*=10
+                t2*=10
+            t=ceil(t1+t2)%3
             if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,1.5*i,1.5*j,2)
                 houseGroup1.childs += [node]
@@ -296,7 +304,12 @@ def createScene(pipeline):
 
     for i in range(3,5):
         for j in range(13):
-            t=j%3
+            t1=random.random()
+            t2=random.random()
+            while (t1<0 or t2<0):
+                t1*=10
+                t2*=10
+            t=ceil(t1+t2)%3
             if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,3)
                 houseGroup2.childs += [node]
@@ -319,7 +332,12 @@ def createScene(pipeline):
 
     for i in range(6,8):
         for j in range(13):
-            t=j%3
+            t1=random.random()
+            t2=random.random()
+            while (t1<0 or t2<0):
+                t1*=10
+                t2*=10
+            t=ceil(t1+t2)%3
             if t==1:
                 node=createHouseNode("house "+ str(i) + str(j),gpuList,-1.5*i,1.5*j,2)
                 houseGroup3.childs += [node]
