@@ -352,7 +352,6 @@ def main():
         controller.camSpeed=controller.camBaseSpeed*dt
         #La dirección en la que mira el ángulo es la tangente de la curva
         dircaru=np.arctan2(C[step+1,0]-C[step,0], C[step+1,2]-C[step,2])
-        print(controller.camPos)
         #Si no se ha recorrido toda la curva
         if step < N*8-1:
             dircaru = np.arctan2(C[step+1,0]-C[step,0], C[step+1,2]-C[step,2])
@@ -388,7 +387,9 @@ def main():
         if step > N*8-2:
             step = 0
         #Actualización del ángulo de giro del auto con la tangente
-        angulo=dircaru
+        #Existe un caso borde en el ultimo punto de la curva, si se permite el cambio en este caso borde,
+        #el auto rota en 90 grados porque la tangente "es 0"
+        angulo=dircaru if step==0 or step%N!=0 else angulo
         if step < N*8-1:
             dircaru = np.arctan2(C[step+1,0]-C[step,0], C[step+1,2]-C[step,2])
         else:
