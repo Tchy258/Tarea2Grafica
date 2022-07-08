@@ -166,16 +166,8 @@ def setView(lightPipeline,texPipeline,controller):
             np.array([0., 1., 0.])
         )
 
-    Xesf = np.sin(controller.cameraPhiAngle)*np.cos(controller.cameraThetaAngle) #coordenada X esferica
-    Zesf = np.sin(controller.cameraPhiAngle)*np.sin(controller.cameraThetaAngle) #coordenada Y esferica
-    Yesf = np.cos(controller.cameraThetaAngle)
-
-    #Posición de la vista
-    viewPos = np.array([controller.camPos[0]-Xesf,controller.camPos[1]-Yesf,controller.camPos[2]-Zesf])
-
     glUseProgram(texPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(texPipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
-    glUniform3f(glGetUniformLocation(texPipeline.shaderProgram, "viewPosition"), viewPos[0], viewPos[1], viewPos[2])
 
     glUseProgram(lightPipeline.shaderProgram)
     glUniformMatrix4fv(glGetUniformLocation(lightPipeline.shaderProgram, "view"), 1, GL_TRUE, controller.view)
