@@ -16,7 +16,7 @@ import math
 controller=Controller()
 #Diccionario de luces
 spotlightsPool = dict()
-#Clase para controlar el auto
+#Función para configurar las luces
 def setLights():
     #Luz de la linterna
     spot1 = Spotlight()
